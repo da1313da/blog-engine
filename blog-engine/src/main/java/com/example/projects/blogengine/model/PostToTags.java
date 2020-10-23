@@ -3,26 +3,20 @@ package com.example.projects.blogengine.model;
 import lombok.Data;
 
 import javax.persistence.*;
-import java.time.ZonedDateTime;
 
 @Data
 @Entity
-public class PostVotes {
+@Table(name = "tag2post")
+public class PostToTags {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    private Users userId;
-
-    @ManyToOne
     @JoinColumn(name = "post_id", nullable = false)
     private Posts postId;
 
-    @Column(nullable = false)
-    private ZonedDateTime time;
-
-    @Column(nullable = false)
-    private Byte value;
+    @ManyToOne
+    @JoinColumn(name = "tag_id", nullable = false)
+    private Tags tagId;
 }
