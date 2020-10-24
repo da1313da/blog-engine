@@ -1,11 +1,16 @@
 package com.example.projects.blogengine.model;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 import javax.persistence.*;
 import java.time.ZonedDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 @Data
+@EqualsAndHashCode(exclude = "comments")
 @Entity
 public class PostComments {
     @Id
@@ -29,4 +34,8 @@ public class PostComments {
 
     @Column(nullable = false, columnDefinition = "TEXT")
     private String text;
+
+    @ToString.Exclude
+    @OneToMany(mappedBy = "parentId")
+    private Set<PostComments> comments = new HashSet<>();
 }

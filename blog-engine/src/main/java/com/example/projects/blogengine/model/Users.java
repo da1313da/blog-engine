@@ -11,7 +11,7 @@ import java.util.Set;
 
 @Data
 @Entity
-@EqualsAndHashCode(exclude = {"regularPosts", "moderationPosts"})
+@EqualsAndHashCode(exclude = {"regularPosts", "moderationPosts", "comments", "votes"})
 public class Users {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -45,4 +45,12 @@ public class Users {
     @ToString.Exclude
     @OneToMany(mappedBy = "moderatorId", cascade = CascadeType.PERSIST)
     private Set<Posts> moderationPosts = new HashSet<>();
+
+    @ToString.Exclude
+    @OneToMany(mappedBy = "userId", cascade = CascadeType.PERSIST)
+    private Set<PostComments> comments = new HashSet<>();
+
+    @ToString.Exclude
+    @OneToMany(mappedBy = "userId", cascade = CascadeType.PERSIST)
+    private Set<PostVotes> votes = new HashSet<>();
 }

@@ -1,11 +1,16 @@
 package com.example.projects.blogengine.model;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 import javax.persistence.*;
 import java.time.ZonedDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 @Data
+@EqualsAndHashCode(exclude = {"linkedTags", "comments", "votes"})
 @Entity
 public class Posts {
     @Id
@@ -38,4 +43,16 @@ public class Posts {
 
     @Column(nullable = false)
     private Integer viewCount;
+
+    @ToString.Exclude
+    @OneToMany(mappedBy = "postId", cascade = CascadeType.PERSIST)
+    private Set<TagToPost> linkedTags = new HashSet<>();
+
+    @ToString.Exclude
+    @OneToMany(mappedBy = "postId", cascade = CascadeType.PERSIST)
+    private Set<PostComments> comments = new HashSet<>();
+
+    @ToString.Exclude
+    @OneToMany(mappedBy = "postId", cascade = CascadeType.PERSIST)
+    private Set<PostVotes> votes = new HashSet<>();
 }
