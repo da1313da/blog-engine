@@ -1,4 +1,4 @@
-package com.example.projects.blogengine;
+package com.example.projects.blogengine.data;
 
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Value;
@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 
 @Data
 @Component
-public class GeneralInfo {
+public class GeneralInfoDao {
     @Value("${GeneralInfo.title}")
     private String title;
     @Value("${GeneralInfo.subtitle}")

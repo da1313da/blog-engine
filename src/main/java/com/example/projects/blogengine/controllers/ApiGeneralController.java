@@ -1,7 +1,7 @@
 package com.example.projects.blogengine.controllers;
 
-import com.example.projects.blogengine.GeneralInfo;
-import com.example.projects.blogengine.data.GlobalSettingsRepository;
+import com.example.projects.blogengine.data.GeneralInfoDao;
+import com.example.projects.blogengine.repository.GlobalSettingsRepository;
 import com.example.projects.blogengine.model.GlobalSettings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -17,13 +17,13 @@ import java.util.Map;
 public class ApiGeneralController {
 
     @Autowired
-    private GeneralInfo generalInfo;
+    private GeneralInfoDao generalInfo;
 
     @Autowired
     private GlobalSettingsRepository globalSettingsRepository;
 
     @GetMapping("/api/init")
-    public GeneralInfo getGeneralInfo(){
+    public GeneralInfoDao getGeneralInfo(){
         return generalInfo;
     }
 

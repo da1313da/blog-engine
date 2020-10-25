@@ -1,5 +1,6 @@
-package com.example.projects.blogengine.data;
+package com.example.projects.blogengine.repository;
 
+import com.example.projects.blogengine.repository.view.PostsByConditionView;
 import com.example.projects.blogengine.model.views.PostsByConditions;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;

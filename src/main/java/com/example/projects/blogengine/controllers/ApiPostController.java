@@ -1,8 +1,8 @@
 package com.example.projects.blogengine.controllers;
 
-import com.example.projects.blogengine.data.PageRequestWithOffset;
-import com.example.projects.blogengine.data.PostsByConditionRepository;
-import com.example.projects.blogengine.data.PostsByConditionView;
+import com.example.projects.blogengine.repository.PageRequestWithOffset;
+import com.example.projects.blogengine.repository.PostsByConditionRepository;
+import com.example.projects.blogengine.repository.view.PostsByConditionView;
 import com.example.projects.blogengine.data.PostsDao;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
