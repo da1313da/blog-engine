@@ -31,38 +31,31 @@ public class ApiPostController {
                                            @RequestParam(name = "limit") int limit,
                                            @RequestParam(name = "mode") String mode){
         //check frontend params?
+        int count = 0;
+        List<PostsByConditionView> posts = null;
+        Map<String, Object> response = new HashMap<>();
         if (mode.equals("recent")){
             PageRequestWithOffset page = new PageRequestWithOffset(limit, offset, Sort.by("timestamp").ascending());
-            int count = repository.getPostsCount();
-            List<PostsByConditionView> posts = repository.getPostsByConditions(page);
-            return configureResponse(count, posts);
+            count = repository.getPostsCount();
+            posts = repository.getPostsByConditions(page);
         } else if (mode.equals("popular")){
             PageRequestWithOffset page = new PageRequestWithOffset(limit, offset, Sort.by("commentCount").descending());
-            int count = repository.getPostsCount();
-            List<PostsByConditionView> posts = repository.getPostsByConditions(page);
-            return configureResponse(count, posts);
+            count = repository.getPostsCount();
+            posts = repository.getPostsByConditions(page);
         } else if (mode.equals("best")){
             PageRequestWithOffset page = new PageRequestWithOffset(limit, offset, Sort.by("likeCount").descending());
-            int count = repository.getPostsCount();
-            List<PostsByConditionView> posts = repository.getPostsByConditions(page);
-            return configureResponse(count, posts);
+            count = repository.getPostsCount();
+            posts = repository.getPostsByConditions(page);
         } else if (mode.equals("early")){
             PageRequestWithOffset page = new PageRequestWithOffset(limit, offset, Sort.by("timestamp").descending());
-            int count = repository.getPostsCount();
-            List<PostsByConditionView> posts = repository.getPostsByConditions(page);
-            return configureResponse(count, posts);
+            count = repository.getPostsCount();
+            posts = repository.getPostsByConditions(page);
         }
-        return null;
+        response.put("count", count);
+        response.put("posts", posts);
+        return response;
     }
 
-    private Map<String, Object> configureResponse(int count, List<PostsByConditionView> posts){
-        if (posts.size() == 0){
-            return null;
-        } else {
-            Map<String, Object> response = new HashMap<>();
-            response.put("count", count);
-            response.put("posts", posts);
-            return response;
-        }
-    }
+//    @GetMapping("api/post/search")
+//    public Object get
 }
