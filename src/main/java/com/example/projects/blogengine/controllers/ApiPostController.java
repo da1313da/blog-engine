@@ -23,5 +23,17 @@ public class ApiPostController {
         return responseBuilder.getPostResponse(limit, offset, mode);
     }
 
+    @GetMapping("api/post/byDate")
+    public PostResponse getPostResponseByDate(@RequestParam(name = "offset") int offset,
+                                        @RequestParam(name = "limit") int limit,
+                                        @RequestParam(name = "date") String date){
+        return responseBuilder.getPostResponseByDate(limit, offset, date);
+    }
 
+    @GetMapping("/api/post/byTag")
+    public PostResponse getPostResponseByTag(@RequestParam(name = "offset") int offset,
+                                              @RequestParam(name = "limit") int limit,
+                                              @RequestParam(name = "tag") String tag){
+        return responseBuilder.getPostResponseByTag(limit, offset, tag);
+    }
 }

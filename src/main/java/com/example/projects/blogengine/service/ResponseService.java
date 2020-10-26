@@ -9,7 +9,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 
 @Component
@@ -22,7 +25,7 @@ public class ResponseService {
 
     public PostResponse getPostResponse(int limit, int offset, String mode) {
         PostResponse response = new PostResponse();
-        int count = repository.getPostsCount();
+        int count = repository.getPostsCount(ZonedDateTime.now());
         response.setCount(count);
         if (count == 0){
             response.setPosts(new ArrayList<>());
@@ -30,18 +33,52 @@ public class ResponseService {
         }
         switch (mode) {
             case "recent":
-                response.setPosts(repository.getPostsForPostResponse(ZonedDateTime.now(), new PageRequestWithOffset(limit, offset, Sort.by("time").descending())));
+                PageRequestWithOffset page = new PageRequestWithOffset(limit, offset, Sort.by("time").descending());
+                response.setPosts(repository.getPostsForPostResponse(ZonedDateTime.now(), page));
                 break;
             case "popular":
-                response.setPosts(repository.getPostsForPostResponse(ZonedDateTime.now(), new PageRequestWithOffset(limit, offset, Sort.by("comments").descending())));
+                page = new PageRequestWithOffset(limit, offset, Sort.by("comments").descending());
+                response.setPosts(repository.getPostsForPostResponse(ZonedDateTime.now(), page));
                 break;
             case "best":
-                response.setPosts(repository.getPostsForPostResponse(ZonedDateTime.now(), new PageRequestWithOffset(limit, offset, Sort.by("likes").descending())));
+                page = new PageRequestWithOffset(limit, offset, Sort.by("likes").descending());
+                response.setPosts(repository.getPostsForPostResponse(ZonedDateTime.now(), page));
                 break;
             case "early":
-                response.setPosts(repository.getPostsForPostResponse(ZonedDateTime.now(), new PageRequestWithOffset(limit, offset, Sort.by("time").ascending())));
+                page = new PageRequestWithOffset(limit, offset, Sort.by("time").ascending());
+                response.setPosts(repository.getPostsForPostResponse(ZonedDateTime.now(), page));
                 break;
         }
         return response;
+    }
+
+    public PostResponse getPostResponseByDate(int limit, int offset, String date){
+        PostResponse postResponse = new PostResponse();
+        String startDateStr = date + " 00:00:00";
+        String endDateStr = date + " 23:59:59";
+        ZonedDateTime start = ZonedDateTime.of(LocalDateTime.parse(startDateStr, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")), ZoneId.of("Europe/Moscow"));
+        ZonedDateTime end = ZonedDateTime.of(LocalDateTime.parse(endDateStr, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")), ZoneId.of("Europe/Moscow"));
+        int count = repository.getPostsCountByDate(ZonedDateTime.now(), start, end);
+        postResponse.setCount(count);
+        if (count == 0){
+            postResponse.setPosts(new ArrayList<>());
+            return postResponse;
+        }
+        PageRequestWithOffset page = new PageRequestWithOffset(limit, offset, Sort.unsorted());
+        postResponse.setPosts(repository.getPostsForPostResponseByDate(ZonedDateTime.now(), start, end, page));
+        return postResponse;
+    }
+
+    public PostResponse getPostResponseByTag(int limit, int offset, String tag) {
+        PostResponse postResponse = new PostResponse();
+        PageRequestWithOffset page = new PageRequestWithOffset(limit, offset, Sort.unsorted());
+        int count = repository.getPostsCountByTag(ZonedDateTime.now(), tag);
+        postResponse.setCount(count);
+        if (count == 0){
+            postResponse.setPosts(new ArrayList<>());
+            return postResponse;
+        }
+        postResponse.setPosts(repository.getPostsForPostResponseByTag(ZonedDateTime.now(), tag, page));
+        return postResponse;
     }
 }
