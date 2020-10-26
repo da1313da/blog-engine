@@ -14,3 +14,5 @@ GeneralInfo:
   email: mail@mail.ru
   copyright: Дмитрий Сергеев
   copyrightFrom: 2005
+
+#spring.jackson.serialization.fail-on-empty-beans: false
