@@ -1,11 +1,9 @@
 package com.example.projects.blogengine.service;
 
+import com.example.projects.blogengine.api.request.EmailData;
 import com.example.projects.blogengine.api.request.LoginData;
 import com.example.projects.blogengine.api.request.RegistrationData;
-import com.example.projects.blogengine.api.response.CaptchaResponse;
-import com.example.projects.blogengine.api.response.LoginResponse;
-import com.example.projects.blogengine.api.response.RegistrationResponse;
-import com.example.projects.blogengine.api.response.RegistrationErrors;
+import com.example.projects.blogengine.api.response.*;
 import com.example.projects.blogengine.data.UserForLoginResponse;
 import com.example.projects.blogengine.model.CaptchaCodes;
 import com.example.projects.blogengine.model.Users;
@@ -44,6 +42,9 @@ public class AuthService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private SpringEmailService emailService;
 
     private final Map<String, Integer> sessionId = new HashMap<>();
 
@@ -138,6 +139,23 @@ public class AuthService {
             user.setIsModerator((byte) 0);
             usersRepository.save(user);
             response.setResult(true);
+        }
+        return response;
+    }
+
+    public BooleanResponse getRestoreResult(EmailData email) {
+        Users user = usersRepository.getUsersByEmail(email.getEmail());
+        BooleanResponse response = new BooleanResponse();
+        if (user != null){
+            String code = TokenGenerator.getToken(30);
+            user.setCode(code);
+            usersRepository.save(user);
+            String authority = "http://localhost:8080";//todo move to props?
+            String link = "/login/change-password/" + code;
+            //emailService.sendSimpleMessage(email.getEmail(), "Сброс пароля", "Для сброса пароля перейдите по ссылке " + authority + link);
+            response.setResult(true);
+        } else {
+            response.setResult(false);
         }
         return response;
     }

@@ -1,7 +1,9 @@
 package com.example.projects.blogengine.controllers;
 
+import com.example.projects.blogengine.api.request.EmailData;
 import com.example.projects.blogengine.api.request.LoginData;
 import com.example.projects.blogengine.api.request.RegistrationData;
+import com.example.projects.blogengine.api.response.BooleanResponse;
 import com.example.projects.blogengine.api.response.CaptchaResponse;
 import com.example.projects.blogengine.api.response.LoginResponse;
 import com.example.projects.blogengine.api.response.RegistrationResponse;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpSession;
+import java.util.Map;
 
 @RestController
 public class ApiAuthController {
@@ -42,6 +45,11 @@ public class ApiAuthController {
     @GetMapping("/api/auth/captcha")
     public CaptchaResponse getCaptcha(){
         return authService.getCaptchaResponse();
+    }
+
+    @PostMapping("/api/auth/restore")
+    public BooleanResponse restorePassword(@RequestBody EmailData email){
+        return authService.getRestoreResult(email);
     }
 
 }
