@@ -14,26 +14,27 @@ public class ApiPostController {
     private Logger logger = LoggerFactory.getLogger(ApiPostController.class);
 
     @Autowired
-    private ResponseService responseBuilder;
+    private ResponseService responseService;
 
     @GetMapping("api/post")
     public PostResponse getPostResponse(@RequestParam(name = "offset") int offset,
                                         @RequestParam(name = "limit") int limit,
                                         @RequestParam(name = "mode") String mode){
-        return responseBuilder.getPostResponse(limit, offset, mode);
+        return responseService.getPostResponse(limit, offset, mode);
     }
 
     @GetMapping("api/post/byDate")
     public PostResponse getPostResponseByDate(@RequestParam(name = "offset") int offset,
                                         @RequestParam(name = "limit") int limit,
                                         @RequestParam(name = "date") String date){
-        return responseBuilder.getPostResponseByDate(limit, offset, date);
+        return responseService.getPostResponseByDate(limit, offset, date);
     }
 
     @GetMapping("/api/post/byTag")
     public PostResponse getPostResponseByTag(@RequestParam(name = "offset") int offset,
                                               @RequestParam(name = "limit") int limit,
                                               @RequestParam(name = "tag") String tag){
-        return responseBuilder.getPostResponseByTag(limit, offset, tag);
+        return responseService.getPostResponseByTag(limit, offset, tag);
     }
+
 }

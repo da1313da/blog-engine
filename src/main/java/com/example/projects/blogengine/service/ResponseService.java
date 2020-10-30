@@ -1,8 +1,8 @@
 package com.example.projects.blogengine.service;
 
 import com.example.projects.blogengine.api.response.PostResponse;
+import com.example.projects.blogengine.utility.PageRequestWithOffset;
 import com.example.projects.blogengine.repository.PostsRepository;
-import com.example.projects.blogengine.repository.PageRequestWithOffset;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +14,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+
 
 @Component
 public class ResponseService {

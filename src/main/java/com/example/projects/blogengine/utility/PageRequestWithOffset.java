@@ -1,4 +1,4 @@
-package com.example.projects.blogengine.repository;
+package com.example.projects.blogengine.utility;
 
 
 import org.springframework.data.domain.Pageable;

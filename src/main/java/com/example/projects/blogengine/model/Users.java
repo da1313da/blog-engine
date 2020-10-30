@@ -33,7 +33,6 @@ public class Users {
     @Column(nullable = false)
     private String password;
 
-    @Column(nullable = false)
     private String code;
 
     @Column(columnDefinition = "TEXT")
@@ -58,4 +57,9 @@ public class Users {
     @ToString.Exclude
     @OneToMany(mappedBy = "userId", cascade = CascadeType.PERSIST)
     private Set<PostVotes> votes = new HashSet<>();
+
+    @PrePersist
+    private void prePersist(){
+        regTime = ZonedDateTime.now();
+    }
 }
