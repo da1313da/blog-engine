@@ -44,9 +44,9 @@ public class Posts {
     @Column(nullable = false)
     private Integer viewCount;
 
-    @ToString.Exclude
-    @OneToMany(mappedBy = "postId", cascade = CascadeType.PERSIST)
-    private Set<TagToPost> linkedTags = new HashSet<>();
+//    @ToString.Exclude
+//    @OneToMany(mappedBy = "postId", cascade = CascadeType.PERSIST)
+//    private Set<TagToPost> linkedTags = new HashSet<>();
 
     @ToString.Exclude
     @OneToMany(mappedBy = "postId", cascade = CascadeType.PERSIST)
@@ -55,4 +55,8 @@ public class Posts {
     @ToString.Exclude
     @OneToMany(mappedBy = "postId", cascade = CascadeType.PERSIST)
     private Set<PostVotes> votes = new HashSet<>();
+
+    @ToString.Exclude
+    @ManyToMany()
+    private Set<Tags> linkedTags = new HashSet<>();
 }

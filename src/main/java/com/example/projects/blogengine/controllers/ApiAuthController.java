@@ -1,12 +1,10 @@
 package com.example.projects.blogengine.controllers;
 
+import com.example.projects.blogengine.api.request.ChangePasswordData;
 import com.example.projects.blogengine.api.request.EmailData;
 import com.example.projects.blogengine.api.request.LoginData;
 import com.example.projects.blogengine.api.request.RegistrationData;
-import com.example.projects.blogengine.api.response.BooleanResponse;
-import com.example.projects.blogengine.api.response.CaptchaResponse;
-import com.example.projects.blogengine.api.response.LoginResponse;
-import com.example.projects.blogengine.api.response.RegistrationResponse;
+import com.example.projects.blogengine.api.response.*;
 import com.example.projects.blogengine.service.AuthService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,7 +15,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpSession;
-import java.util.Map;
 
 @RestController
 public class ApiAuthController {
@@ -52,4 +49,8 @@ public class ApiAuthController {
         return authService.getRestoreResult(email);
     }
 
+    @PostMapping("/api/auth/password")
+    public ChangePasswordResponse changePassword(@RequestBody ChangePasswordData changePasswordData){
+        return authService.getChangePasswordRequest(changePasswordData);
+    }
 }

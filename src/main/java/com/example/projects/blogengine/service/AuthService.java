@@ -1,5 +1,6 @@
 package com.example.projects.blogengine.service;
 
+import com.example.projects.blogengine.api.request.ChangePasswordData;
 import com.example.projects.blogengine.api.request.EmailData;
 import com.example.projects.blogengine.api.request.LoginData;
 import com.example.projects.blogengine.api.request.RegistrationData;
@@ -48,7 +49,7 @@ public class AuthService {
 
     private final Map<String, Integer> sessionId = new HashMap<>();
 
-    public CaptchaResponse getCaptchaResponse() {
+    public CaptchaResponse getCaptchaResponse() {//todo move hardcoded values to props?
         clearExpiredCaptcha();
         GCage cage = new GCage();
         CaptchaResponse response = new CaptchaResponse();
@@ -118,13 +119,16 @@ public class AuthService {
         if (usersRepository.getUsersByEmail(registrationData.getEmail()) != null){
             errors.setEmail("Этот e-mail уже зарегистрирован");
             isErrorPresent = true;
-        } else if(registrationData.getPassword().length() < 6){
+        }
+        if(registrationData.getPassword().length() < 6){
             errors.setPassword("Пароль короче 6-ти символов");
             isErrorPresent = true;
-        } else if (!registrationData.getCaptcha().equals(captcha.getCode())){
+        }
+        if (!registrationData.getCaptcha().equals(captcha.getCode())){
             errors.setCaptcha("Код с картинки введён неверно");
             isErrorPresent = true;
-        } else if (registrationData.getName().contains("?")){
+        }
+        if (registrationData.getName().contains("?")){
             //todo any name conditions?
             isErrorPresent = true;
         }
@@ -156,6 +160,39 @@ public class AuthService {
             response.setResult(true);
         } else {
             response.setResult(false);
+        }
+        return response;
+    }
+
+    public ChangePasswordResponse getChangePasswordRequest(ChangePasswordData changePasswordData) {
+        Users users = usersRepository.getByCode(changePasswordData.getCode());
+        ChangePasswordErrors errors = new ChangePasswordErrors();
+        ChangePasswordResponse response = new ChangePasswordResponse();
+        if (users != null){
+            CaptchaCodes captchaCode = captchaRepository.getBySecretCode(changePasswordData.getCaptchaSecret()).orElseThrow(IllegalArgumentException::new);
+            boolean isErrorPresent = false;
+            if (!captchaCode.getCode().equals(changePasswordData.getCaptcha())){
+                errors.setCaptcha("Код с картинки введён неверно");
+                isErrorPresent = true;
+            }
+            if (changePasswordData.getPassword().length() < 6){//todo hardcoded
+                errors.setPassword("Пароль короче 6-ти символов");
+                isErrorPresent = true;
+            }
+            if (isErrorPresent){
+                response.setErrors(errors);
+                response.setResult(false);
+            } else {
+                users.setPassword(passwordEncoder.encode(changePasswordData.getPassword()));
+                usersRepository.save(users);
+                response.setResult(true);
+            }
+        } else {
+            errors.setCode("Ссылка для восстановления пароля устарела.\n" +
+                    "\t\t\t\t<a href=\n" +
+                    "\t\t\t\t\\\"/auth/restore\\\">Запросить ссылку снова</a>");
+            response.setResult(false);
+            response.setErrors(errors);
         }
         return response;
     }

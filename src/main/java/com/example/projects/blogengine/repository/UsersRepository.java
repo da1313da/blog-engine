@@ -31,4 +31,5 @@ public interface UsersRepository extends JpaRepository<Users, Integer> {
     Users getUsersByEmailAndPassword(String email, String password);
 
     Users getUsersByEmail(String email);
+    Users getByCode(String code);
 }

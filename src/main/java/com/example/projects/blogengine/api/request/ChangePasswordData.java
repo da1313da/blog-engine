@@ -6,7 +6,14 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class EmailData {
-    @JsonProperty("email")
-    String email;
+public class ChangePasswordData {
+
+    String code;
+
+    String password;
+
+    String captcha;
+
+    @JsonProperty("captcha_secret")
+    String captchaSecret;
 }
