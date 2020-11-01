@@ -10,9 +10,10 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Data
-@EqualsAndHashCode(exclude = {"linkedTags", "comments", "votes"})
+@EqualsAndHashCode(exclude = {"tags", "comments", "votes"})
 @Entity
-public class Posts {
+@Table(name = "posts")
+public class Post {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
@@ -26,11 +27,11 @@ public class Posts {
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
     @JoinColumn(name = "moderator_id", nullable = false)
-    private Users moderatorId;
+    private User moderator;
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
     @JoinColumn(name = "user_id", nullable = false)
-    private Users userId;
+    private User user;
 
     @Column(nullable = false)
     private ZonedDateTime time;
@@ -45,14 +46,17 @@ public class Posts {
     private Integer viewCount;
 
     @ToString.Exclude
-    @OneToMany(mappedBy = "postId", cascade = CascadeType.PERSIST)
-    private Set<TagToPost> linkedTags = new HashSet<>();
+    @ManyToMany
+    @JoinTable(name = "Tag2Post",
+            joinColumns = @JoinColumn(name = "tag_id"),
+            inverseJoinColumns = @JoinColumn(name = "post_id"))
+    private Set<Tag> tags = new HashSet<>();
 
     @ToString.Exclude
-    @OneToMany(mappedBy = "postId", cascade = CascadeType.PERSIST)
-    private Set<PostComments> comments = new HashSet<>();
+    @OneToMany(mappedBy = "post", cascade = CascadeType.PERSIST)
+    private Set<PostComment> comments = new HashSet<>();
 
     @ToString.Exclude
-    @OneToMany(mappedBy = "postId", cascade = CascadeType.PERSIST)
-    private Set<PostVotes> votes = new HashSet<>();
+    @OneToMany(mappedBy = "post", cascade = CascadeType.PERSIST)
+    private Set<PostVote> votes = new HashSet<>();
 }

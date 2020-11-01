@@ -7,18 +7,19 @@ import java.time.ZonedDateTime;
 
 @Data
 @Entity
-public class PostVotes {
+@Table(name = "post_votes")
+public class PostVote {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
-    private Users userId;
+    private User user;
 
     @ManyToOne
     @JoinColumn(name = "post_id", nullable = false)
-    private Posts postId;
+    private Post post;
 
     @Column(nullable = false)
     private ZonedDateTime time;

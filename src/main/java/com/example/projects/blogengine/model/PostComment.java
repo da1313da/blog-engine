@@ -12,22 +12,23 @@ import java.util.Set;
 @Data
 @EqualsAndHashCode(exclude = "comments")
 @Entity
-public class PostComments {
+@Table(name = "post_comments")
+public class PostComment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     @ManyToOne
     @JoinColumn(name = "parent_id")
-    private PostComments parentId;
+    private PostComment parent;
 
     @ManyToOne
     @JoinColumn(name = "post_id", nullable = false)
-    private Posts postId;
+    private Post post;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
-    private Users userId;
+    private User user;
 
     @Column(nullable = false)
     private ZonedDateTime time;
@@ -36,6 +37,6 @@ public class PostComments {
     private String text;
 
     @ToString.Exclude
-    @OneToMany(mappedBy = "parentId")
-    private Set<PostComments> comments = new HashSet<>();
+    @OneToMany(mappedBy = "parent")
+    private Set<PostComment> comments = new HashSet<>();
 }

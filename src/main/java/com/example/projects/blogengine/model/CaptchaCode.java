@@ -7,7 +7,8 @@ import java.time.ZonedDateTime;
 
 @Data
 @Entity
-public class CaptchaCodes {
+@Table(name = "captcha_codes")
+public class CaptchaCode {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;

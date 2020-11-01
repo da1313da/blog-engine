@@ -9,9 +9,10 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Data
-@EqualsAndHashCode(exclude = {"linkedPosts"})
+@EqualsAndHashCode(exclude = {"posts"})
 @Entity
-public class Tags {
+@Table(name = "tags")
+public class Tag {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
@@ -20,6 +21,6 @@ public class Tags {
     private String name;
 
     @ToString.Exclude
-    @OneToMany(mappedBy = "tagId", cascade = CascadeType.PERSIST)
-    private Set<TagToPost> linkedPosts = new HashSet<>();
+    @ManyToMany(mappedBy = "tags")
+    private Set<Post> posts = new HashSet<>();
 }

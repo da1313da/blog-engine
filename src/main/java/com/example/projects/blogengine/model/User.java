@@ -11,8 +11,9 @@ import java.util.Set;
 
 @Data
 @Entity
+@Table(name = "users")
 @EqualsAndHashCode(exclude = {"regularPosts", "moderationPosts", "comments", "votes"})
-public class Users {
+public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
@@ -32,25 +33,24 @@ public class Users {
     @Column(nullable = false)
     private String password;
 
-    @Column(nullable = false)
     private String code;
 
     @Column(columnDefinition = "TEXT")
     private String photo;
 
     @ToString.Exclude
-    @OneToMany(mappedBy = "userId", cascade = CascadeType.PERSIST)
-    private Set<Posts> regularPosts = new HashSet<>();
+    @OneToMany(mappedBy = "user", cascade = CascadeType.PERSIST)
+    private Set<Post> regularPosts = new HashSet<>();
 
     @ToString.Exclude
-    @OneToMany(mappedBy = "moderatorId", cascade = CascadeType.PERSIST)
-    private Set<Posts> moderationPosts = new HashSet<>();
+    @OneToMany(mappedBy = "moderator", cascade = CascadeType.PERSIST)
+    private Set<Post> moderationPosts = new HashSet<>();
 
     @ToString.Exclude
-    @OneToMany(mappedBy = "userId", cascade = CascadeType.PERSIST)
-    private Set<PostComments> comments = new HashSet<>();
+    @OneToMany(mappedBy = "user", cascade = CascadeType.PERSIST)
+    private Set<PostComment> comments = new HashSet<>();
 
     @ToString.Exclude
-    @OneToMany(mappedBy = "userId", cascade = CascadeType.PERSIST)
-    private Set<PostVotes> votes = new HashSet<>();
+    @OneToMany(mappedBy = "user", cascade = CascadeType.PERSIST)
+    private Set<PostVote> votes = new HashSet<>();
 }
