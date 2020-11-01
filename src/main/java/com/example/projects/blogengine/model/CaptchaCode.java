@@ -21,4 +21,9 @@ public class CaptchaCode {
 
     @Column(nullable = false, columnDefinition = "TINYTEXT")
     private String secretCode;
+
+    @PrePersist
+    private void prePersist(){
+        time = ZonedDateTime.now();
+    }
 }
