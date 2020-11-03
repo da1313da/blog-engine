@@ -1,10 +1,13 @@
 package com.example.projects.blogengine.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 import javax.persistence.*;
+import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
 import java.util.HashSet;
 import java.util.Set;
@@ -38,18 +41,22 @@ public class User {
     @Column(columnDefinition = "TEXT")
     private String photo;
 
+    @JsonIgnore
     @ToString.Exclude
     @OneToMany(mappedBy = "user", cascade = CascadeType.PERSIST)
     private Set<Post> regularPosts = new HashSet<>();
 
+    @JsonIgnore
     @ToString.Exclude
     @OneToMany(mappedBy = "moderator", cascade = CascadeType.PERSIST)
     private Set<Post> moderationPosts = new HashSet<>();
 
+    @JsonIgnore
     @ToString.Exclude
     @OneToMany(mappedBy = "user", cascade = CascadeType.PERSIST)
     private Set<PostComment> comments = new HashSet<>();
 
+    @JsonIgnore
     @ToString.Exclude
     @OneToMany(mappedBy = "user", cascade = CascadeType.PERSIST)
     private Set<PostVote> votes = new HashSet<>();

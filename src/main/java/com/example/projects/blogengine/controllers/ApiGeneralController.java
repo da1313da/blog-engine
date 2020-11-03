@@ -1,8 +1,8 @@
 package com.example.projects.blogengine.controllers;
 
 import com.example.projects.blogengine.data.GeneralInfoDao;
-import com.example.projects.blogengine.repository.GlobalSettingsRepository;
 import com.example.projects.blogengine.model.GlobalSettings;
+import com.example.projects.blogengine.repository.GlobalSettingsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -36,6 +36,4 @@ public class ApiGeneralController {
         }
         return new ResponseEntity<>(responseBody, HttpStatus.OK);
     }
-
-
 }

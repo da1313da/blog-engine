@@ -1,5 +1,6 @@
 package com.example.projects.blogengine.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -36,6 +37,7 @@ public class PostComment {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String text;
 
+    @JsonIgnore
     @ToString.Exclude
     @OneToMany(mappedBy = "parent")
     private Set<PostComment> comments = new HashSet<>();

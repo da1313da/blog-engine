@@ -1,5 +1,6 @@
 package com.example.projects.blogengine.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -45,17 +46,20 @@ public class Post {
     @Column(nullable = false)
     private Integer viewCount;
 
+    @JsonIgnore
     @ToString.Exclude
     @ManyToMany
-    @JoinTable(name = "Tag2Post",
+    @JoinTable(name = "tag2post",
             joinColumns = @JoinColumn(name = "tag_id"),
             inverseJoinColumns = @JoinColumn(name = "post_id"))
     private Set<Tag> tags = new HashSet<>();
 
+    @JsonIgnore
     @ToString.Exclude
     @OneToMany(mappedBy = "post", cascade = CascadeType.PERSIST)
     private Set<PostComment> comments = new HashSet<>();
 
+    @JsonIgnore
     @ToString.Exclude
     @OneToMany(mappedBy = "post", cascade = CascadeType.PERSIST)
     private Set<PostVote> votes = new HashSet<>();

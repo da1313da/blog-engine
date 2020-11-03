@@ -7,9 +7,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class LoginData {
-
     @JsonProperty("e_mail")
     String email;
-
     String password;
 }

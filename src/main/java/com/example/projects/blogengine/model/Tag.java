@@ -1,5 +1,6 @@
 package com.example.projects.blogengine.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -20,6 +21,7 @@ public class Tag {
     @Column(nullable = false)
     private String name;
 
+    @JsonIgnore
     @ToString.Exclude
     @ManyToMany(mappedBy = "tags")
     private Set<Post> posts = new HashSet<>();

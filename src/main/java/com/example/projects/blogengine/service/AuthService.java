@@ -6,8 +6,8 @@ import com.example.projects.blogengine.api.request.LoginData;
 import com.example.projects.blogengine.api.request.RegistrationData;
 import com.example.projects.blogengine.api.response.*;
 import com.example.projects.blogengine.data.UserForLoginResponse;
-import com.example.projects.blogengine.model.CaptchaCodes;
-import com.example.projects.blogengine.model.Users;
+import com.example.projects.blogengine.model.CaptchaCode;
+import com.example.projects.blogengine.model.User;
 import com.example.projects.blogengine.repository.CaptchaRepository;
 import com.example.projects.blogengine.repository.UsersRepository;
 import com.example.projects.blogengine.utility.TokenGenerator;
@@ -49,8 +49,10 @@ public class AuthService {
 
     private final Map<String, Integer> sessionId = new HashMap<>();
 
+    @Transactional
     public CaptchaResponse getCaptchaResponse() {//todo move hardcoded values to props?
-        clearExpiredCaptcha();
+        String date = ZonedDateTime.now().toLocalDateTime().format(DateTimeFormatter.ISO_DATE_TIME);
+        captchaRepository.deleteCaptchaCodes(date);
         GCage cage = new GCage();
         CaptchaResponse response = new CaptchaResponse();
         String secret = TokenGenerator.getToken(20);
@@ -68,7 +70,7 @@ public class AuthService {
         String encodedImage = Base64.getEncoder().encodeToString(byteArray);
         logger.info(encodedImage);
         String image = "data:image/png;base64, " + encodedImage;
-        CaptchaCodes captchaCode = new CaptchaCodes();
+        CaptchaCode captchaCode = new CaptchaCode();
         captchaCode.setCode(code);
         captchaCode.setSecretCode(secret);
         captchaRepository.save(captchaCode);
@@ -77,17 +79,11 @@ public class AuthService {
         return response;
     }
 
-    @Transactional
-    public void clearExpiredCaptcha(){
-        String date = ZonedDateTime.now().toLocalDateTime().format(DateTimeFormatter.ISO_DATE_TIME);
-        logger.info(date);
-        captchaRepository.deleteCaptchaCodes(date);
-    }
-
     public LoginResponse getLoginResponse(LoginData loginData, HttpSession session){
         UserForLoginResponse user = usersRepository.getUserForLoginResponse(loginData.getEmail(), loginData.getPassword());
         LoginResponse response = new LoginResponse();
         if (user != null){
+            //todo synchronize?
             sessionId.put(session.getId(), user.getId());
             response.setResult(true);
             response.setUser(user);
@@ -100,6 +96,7 @@ public class AuthService {
 
     public LoginResponse getUserStatus(HttpSession session) {
         LoginResponse response = new LoginResponse();
+        //todo synchronize?
         if (sessionId.containsKey(session.getId())){
             Integer userId = sessionId.get(session.getId());
             UserForLoginResponse user = usersRepository.getUserForLoginResponseById(userId);
@@ -112,7 +109,7 @@ public class AuthService {
     }
 
     public RegistrationResponse getRegistrationResponse(RegistrationData registrationData) {
-        CaptchaCodes captcha = captchaRepository.getBySecretCode(registrationData.getCaptchaSecret()).orElseThrow(IllegalArgumentException::new);//todo new exe?
+        CaptchaCode captcha = captchaRepository.getBySecretCode(registrationData.getCaptchaSecret()).orElseThrow(IllegalArgumentException::new);//todo new exe?
         RegistrationErrors errors = new RegistrationErrors();
         RegistrationResponse response = new RegistrationResponse();
         boolean isErrorPresent = false;
@@ -136,7 +133,7 @@ public class AuthService {
             response.setResult(false);
             response.setErrors(errors);
         } else {
-            Users user = new Users();
+            User user = new User();
             user.setPassword(passwordEncoder.encode(registrationData.getPassword()));
             user.setName(registrationData.getName());
             user.setEmail(registrationData.getEmail());
@@ -148,7 +145,7 @@ public class AuthService {
     }
 
     public BooleanResponse getRestoreResult(EmailData email) {
-        Users user = usersRepository.getUsersByEmail(email.getEmail());
+        User user = usersRepository.getUsersByEmail(email.getEmail());
         BooleanResponse response = new BooleanResponse();
         if (user != null){
             String code = TokenGenerator.getToken(30);
@@ -165,11 +162,11 @@ public class AuthService {
     }
 
     public ChangePasswordResponse getChangePasswordRequest(ChangePasswordData changePasswordData) {
-        Users users = usersRepository.getByCode(changePasswordData.getCode());
+        User users = usersRepository.getByCode(changePasswordData.getCode());
         ChangePasswordErrors errors = new ChangePasswordErrors();
         ChangePasswordResponse response = new ChangePasswordResponse();
         if (users != null){
-            CaptchaCodes captchaCode = captchaRepository.getBySecretCode(changePasswordData.getCaptchaSecret()).orElseThrow(IllegalArgumentException::new);
+            CaptchaCode captchaCode = captchaRepository.getBySecretCode(changePasswordData.getCaptchaSecret()).orElseThrow(IllegalArgumentException::new);
             boolean isErrorPresent = false;
             if (!captchaCode.getCode().equals(changePasswordData.getCaptcha())){
                 errors.setCaptcha("Код с картинки введён неверно");
@@ -195,5 +192,9 @@ public class AuthService {
             response.setErrors(errors);
         }
         return response;
+    }
+
+    public Map<String, Integer> getSessionId() {
+        return sessionId;
     }
 }
