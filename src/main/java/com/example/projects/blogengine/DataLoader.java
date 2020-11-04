@@ -14,6 +14,6 @@ public class DataLoader implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) throws Exception {
-        globalSettingsRepository.save(new GlobalSettings("code", "name", "value"));
+        //globalSettingsRepository.save(new GlobalSettings("code", "name", "value"));
     }
 }

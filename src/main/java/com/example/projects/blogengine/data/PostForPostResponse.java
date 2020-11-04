@@ -22,14 +22,11 @@ public interface PostForPostResponse {
     @JsonSerialize(converter = HtmlTagRemover.class)
     String getText();
 
-    @JsonProperty("likeCount")
-    Integer getLikes();
+    Integer getLikeCount();
 
-    @JsonProperty("dislikeCount")
-    Integer getDislikes();
+    Integer getDislikeCount();
 
     Integer getViewCount();
 
-    @JsonProperty("commentCount")
-    Integer getComments();
+    Integer getCommentCount();
 }

@@ -50,8 +50,8 @@ public class Post {
     @ToString.Exclude
     @ManyToMany
     @JoinTable(name = "tag2post",
-            joinColumns = @JoinColumn(name = "tag_id"),
-            inverseJoinColumns = @JoinColumn(name = "post_id"))
+            joinColumns = @JoinColumn(name = "post_id"),
+            inverseJoinColumns = @JoinColumn(name = "tag_id"))
     private Set<Tag> tags = new HashSet<>();
 
     @JsonIgnore
@@ -63,4 +63,14 @@ public class Post {
     @ToString.Exclude
     @OneToMany(mappedBy = "post", cascade = CascadeType.PERSIST)
     private Set<PostVote> votes = new HashSet<>();
+
+    public void addTag(Tag tag){
+        tags.add(tag);
+        tag.getPosts().add(this);
+    }
+
+    public void removeTag(Tag tag){
+        tags.remove(tag);
+        tag.getPosts().remove(this);
+    }
 }

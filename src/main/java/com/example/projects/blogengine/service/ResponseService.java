@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.JpaSort;
 import org.springframework.stereotype.Component;
 
 import javax.servlet.http.HttpSession;
@@ -45,7 +46,7 @@ public class ResponseService {
 
     public PostResponse getPostResponse(int limit, int offset, String mode) {
         PostResponse response = new PostResponse();
-        int count = postRepository.getPostsCount(ZonedDateTime.now());
+        int count = postRepository.getPostsCount(ZonedDateTime.now(ZoneId.of("UTC")));
         response.setCount(count);
         if (count == 0){
             response.setPosts(new ArrayList<>());
@@ -54,19 +55,19 @@ public class ResponseService {
         switch (mode) {
             case "recent":
                 PageRequestWithOffset page = new PageRequestWithOffset(limit, offset, Sort.by("time").descending());
-                response.setPosts(postRepository.getPostsForPostResponse(ZonedDateTime.now(), page));
+                response.setPosts(postRepository.getPostsForPostResponse(ZonedDateTime.now(ZoneId.of("UTC")), page));
                 break;
             case "popular":
-                page = new PageRequestWithOffset(limit, offset, Sort.by("comments").descending());
-                response.setPosts(postRepository.getPostsForPostResponse(ZonedDateTime.now(), page));
+                page = new PageRequestWithOffset(limit, offset, Sort.by("commentCount").descending());
+                response.setPosts(postRepository.getPostsForPostResponse(ZonedDateTime.now(ZoneId.of("UTC")), page));
                 break;
             case "best":
-                page = new PageRequestWithOffset(limit, offset, Sort.by("likes").descending());
-                response.setPosts(postRepository.getPostsForPostResponse(ZonedDateTime.now(), page));
+                page = new PageRequestWithOffset(limit, offset, JpaSort.unsafe(Sort.Direction.DESC, "(likeCount)"));
+                response.setPosts(postRepository.getPostsForPostResponse(ZonedDateTime.now(ZoneId.of("UTC")), page));
                 break;
             case "early":
                 page = new PageRequestWithOffset(limit, offset, Sort.by("time").ascending());
-                response.setPosts(postRepository.getPostsForPostResponse(ZonedDateTime.now(), page));
+                response.setPosts(postRepository.getPostsForPostResponse(ZonedDateTime.now(ZoneId.of("UTC")), page));
                 break;
         }
         return response;
@@ -76,9 +77,8 @@ public class ResponseService {
         PostResponse postResponse = new PostResponse();
         String startDateStr = date + " 00:00:00";
         String endDateStr = date + " 23:59:59";
-        //todo dates!!!!
-        ZonedDateTime start = ZonedDateTime.of(LocalDateTime.parse(startDateStr, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")), ZoneId.of("Europe/Moscow"));
-        ZonedDateTime end = ZonedDateTime.of(LocalDateTime.parse(endDateStr, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")), ZoneId.of("Europe/Moscow"));
+        ZonedDateTime start = ZonedDateTime.of(LocalDateTime.parse(startDateStr, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")), ZoneId.of("UTC"));
+        ZonedDateTime end = ZonedDateTime.of(LocalDateTime.parse(endDateStr, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")), ZoneId.of("UTC"));
         int count = postRepository.getPostsCountByDate(ZonedDateTime.now(), start, end);
         postResponse.setCount(count);
         if (count == 0){
@@ -86,26 +86,27 @@ public class ResponseService {
             return postResponse;
         }
         PageRequestWithOffset page = new PageRequestWithOffset(limit, offset, Sort.unsorted());
-        postResponse.setPosts(postRepository.getPostsForPostResponseByDate(ZonedDateTime.now(), start, end, page));
+        postResponse.setPosts(postRepository.getPostsForPostResponseByDate(ZonedDateTime.now(ZoneId.of("UTC")), start, end, page));
         return postResponse;
     }
 
-    public PostResponse getPostResponseByTag(int limit, int offset, String tag) {
+    public PostResponse getPostResponseByTag(int limit, int offset, String tagName) {
+        Tag tag = tagRepository.getByName(tagName);
+        if (tag == null) return null;//exception
         PostResponse postResponse = new PostResponse();
         PageRequestWithOffset page = new PageRequestWithOffset(limit, offset, Sort.unsorted());
-        String now = ZonedDateTime.now().toLocalDateTime().format(DateTimeFormatter.ISO_DATE_TIME);
-        int count = postRepository.getPostsCountByTag(now, tag);
+        int count = postRepository.getPostsCountByTag(ZonedDateTime.now(ZoneId.of("UTC")), tag);
         postResponse.setCount(count);
         if (count == 0){
             postResponse.setPosts(new ArrayList<>());
             return postResponse;
         }
-        postResponse.setPosts(postRepository.getPostsForPostResponseByTag(now, tag, page));
+        postResponse.setPosts(postRepository.getPostsForPostResponseByTag(ZonedDateTime.now(ZoneId.of("UTC")), tag, page));
         return postResponse;
     }
 
     public PostByIdResponse getPostByIdResponse(Integer id, HttpSession session){
-        Optional<PostForPostByIdResponse> optional = postRepository.getPostsForPostByIdResponse(id, ZonedDateTime.now());
+        Optional<PostForPostByIdResponse> optional = postRepository.getPostsForPostByIdResponse(id, ZonedDateTime.now(ZoneId.of("UTC")));
         if (optional.isEmpty()) return null;
         PostForPostByIdResponse post = optional.get();
         List<CommentForPostById> comments = commentRepository.getByPost(id);
@@ -117,8 +118,8 @@ public class ResponseService {
         response.setUser(post.getUser());
         response.setTitle(post.getTitle());
         response.setText(post.getText());
-        response.setLikeCount(post.getLikes() == null ? 0 : post.getLikes());
-        response.setDislikeCount(post.getDislikes() == null ? 0 : post.getDislikes());
+        response.setLikeCount(post.getLikeCount());
+        response.setDislikeCount(post.getDislikeCount());
         response.setViewCount(post.getViewCount());
         response.setComments(comments);
         response.setTags(tags);

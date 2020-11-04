@@ -28,7 +28,9 @@ spring:
           auth: true
           starttls:
             enable: true
-
+  jackson:
+    serialization:
+      fail-on-empty-beans: false
 GeneralInfo:
   title: DevPub
   subtitle: Рассказы разработчиков
@@ -39,3 +41,4 @@ GeneralInfo:
 
 logging.level.org.hibernate.SQL: DEBUG
 logging.level.org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+

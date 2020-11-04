@@ -5,7 +5,7 @@ import com.example.projects.blogengine.api.request.EmailData;
 import com.example.projects.blogengine.api.request.LoginData;
 import com.example.projects.blogengine.api.request.RegistrationData;
 import com.example.projects.blogengine.api.response.*;
-import com.example.projects.blogengine.data.UserForLoginResponse;
+import com.example.projects.blogengine.data.UserForLoginDto;
 import com.example.projects.blogengine.model.CaptchaCode;
 import com.example.projects.blogengine.model.User;
 import com.example.projects.blogengine.repository.CaptchaRepository;
@@ -24,11 +24,13 @@ import javax.servlet.http.HttpSession;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 public class AuthService {
@@ -51,7 +53,7 @@ public class AuthService {
 
     @Transactional
     public CaptchaResponse getCaptchaResponse() {//todo move hardcoded values to props?
-        String date = ZonedDateTime.now().toLocalDateTime().format(DateTimeFormatter.ISO_DATE_TIME);
+        String date = ZonedDateTime.now(ZoneId.of("UTC")).toLocalDateTime().format(DateTimeFormatter.ISO_DATE_TIME);
         captchaRepository.deleteCaptchaCodes(date);
         GCage cage = new GCage();
         CaptchaResponse response = new CaptchaResponse();
@@ -80,13 +82,22 @@ public class AuthService {
     }
 
     public LoginResponse getLoginResponse(LoginData loginData, HttpSession session){
-        UserForLoginResponse user = usersRepository.getUserForLoginResponse(loginData.getEmail(), loginData.getPassword());
+        User user = usersRepository.getUserByEmail(loginData.getEmail());
         LoginResponse response = new LoginResponse();
-        if (user != null){
-            //todo synchronize?
-            sessionId.put(session.getId(), user.getId());
+        UserForLoginDto userDto = new UserForLoginDto();
+        if (user != null && passwordEncoder.matches(loginData.getPassword(), user.getPassword())){
+            synchronized (sessionId){
+                sessionId.put(session.getId(), user.getId());
+            }
+            userDto.setId(user.getId());
+            userDto.setEmail(user.getEmail());
+            userDto.setModeration(user.getIsModerator() == 1);
+            userDto.setModerationCount(usersRepository.getModeratedPostsCount(user).orElse(0));
+            userDto.setPhoto(user.getPhoto());
+            userDto.setSettings(user.getIsModerator() == 1);
             response.setResult(true);
-            response.setUser(user);
+            response.setUser(userDto);
+            logger.info(session.getId());
         } else {
             response.setResult(false);
         }
@@ -96,12 +107,27 @@ public class AuthService {
 
     public LoginResponse getUserStatus(HttpSession session) {
         LoginResponse response = new LoginResponse();
-        //todo synchronize?
-        if (sessionId.containsKey(session.getId())){
-            Integer userId = sessionId.get(session.getId());
-            UserForLoginResponse user = usersRepository.getUserForLoginResponseById(userId);
+        Integer userId;
+        synchronized (sessionId){
+            userId = sessionId.get(session.getId());
+        }
+        if (userId != null){
+            Optional<User> userOtp = usersRepository.findById(userId);
+            if (userOtp.isEmpty()){
+                //exception
+                response.setResult(false);
+                return response;
+            }
+            User user = userOtp.get();
+            UserForLoginDto userDto = new UserForLoginDto();
+            userDto.setId(user.getId());
+            userDto.setEmail(user.getEmail());
+            userDto.setModeration(user.getIsModerator() == 1);
+            userDto.setModerationCount(usersRepository.getModeratedPostsCount(user).orElse(0));
+            userDto.setPhoto(user.getPhoto());
+            userDto.setSettings(user.getIsModerator() == 1);
+            response.setUser(userDto);
             response.setResult(true);
-            response.setUser(user);
         } else {
             response.setResult(false);
         }
@@ -113,7 +139,7 @@ public class AuthService {
         RegistrationErrors errors = new RegistrationErrors();
         RegistrationResponse response = new RegistrationResponse();
         boolean isErrorPresent = false;
-        if (usersRepository.getUsersByEmail(registrationData.getEmail()) != null){
+        if (usersRepository.getUserByEmail(registrationData.getEmail()) != null){
             errors.setEmail("Этот e-mail уже зарегистрирован");
             isErrorPresent = true;
         }
@@ -145,7 +171,7 @@ public class AuthService {
     }
 
     public BooleanResponse getRestoreResult(EmailData email) {
-        User user = usersRepository.getUsersByEmail(email.getEmail());
+        User user = usersRepository.getUserByEmail(email.getEmail());
         BooleanResponse response = new BooleanResponse();
         if (user != null){
             String code = TokenGenerator.getToken(30);

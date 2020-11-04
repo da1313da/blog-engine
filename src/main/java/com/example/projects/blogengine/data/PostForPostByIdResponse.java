@@ -17,9 +17,9 @@ public interface PostForPostByIdResponse {
 
     String getText();
 
-    Integer getLikes();
+    Integer getLikeCount();
 
-    Integer getDislikes();
+    Integer getDislikeCount();
 
     Integer getViewCount();
 

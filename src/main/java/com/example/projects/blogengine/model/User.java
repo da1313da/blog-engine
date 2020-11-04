@@ -6,8 +6,7 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 import javax.persistence.*;
-import java.time.Instant;
-import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.HashSet;
 import java.util.Set;
@@ -60,4 +59,9 @@ public class User {
     @ToString.Exclude
     @OneToMany(mappedBy = "user", cascade = CascadeType.PERSIST)
     private Set<PostVote> votes = new HashSet<>();
+
+    @PrePersist
+    private void prePersist(){
+        regTime = ZonedDateTime.now(ZoneId.of("UTC"));
+    }
 }
