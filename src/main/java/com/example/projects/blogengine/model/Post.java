@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import org.hibernate.annotations.Where;
 
 import javax.persistence.*;
 import java.time.ZonedDateTime;
@@ -11,7 +12,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Data
-@EqualsAndHashCode(exclude = {"tags", "comments", "votes"})
+@EqualsAndHashCode(exclude = {"tags", "comments", "votes", "likes", "disLikes"})
 @Entity
 @Table(name = "posts")
 public class Post {
@@ -63,6 +64,18 @@ public class Post {
     @ToString.Exclude
     @OneToMany(mappedBy = "post", cascade = CascadeType.PERSIST)
     private Set<PostVote> votes = new HashSet<>();
+
+    @JsonIgnore
+    @ToString.Exclude
+    @Where(clause = "value = 1")
+    @OneToMany(mappedBy = "post")
+    private Set<PostVote> likes = new HashSet<>();
+
+    @JsonIgnore
+    @ToString.Exclude
+    @Where(clause = "value = -1")
+    @OneToMany(mappedBy = "post")
+    private Set<PostVote> disLikes = new HashSet<>();
 
     public void addTag(Tag tag){
         tags.add(tag);
