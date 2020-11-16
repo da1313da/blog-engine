@@ -1,7 +1,7 @@
 DELETE FROM users;
-INSERT INTO users (code,email,is_moderator,name,password,photo,reg_time) VALUES (NULL,'user1@mail.ru',1,'user 1','1y3foblp',NULL,'2020-11-13 14:52:00');
-INSERT INTO users (code,email,is_moderator,name,password,photo,reg_time) VALUES (NULL,'user2@mail.ru',0,'user 2','zdc97g7m',NULL,'2020-11-13 14:53:00');
-INSERT INTO users (code,email,is_moderator,name,password,photo,reg_time) VALUES (NULL,'user3@mail.ru',0,'user 3','txikt8pl',NULL,'2020-11-13 14:54:00');
+INSERT INTO users (code,email,is_moderator,name,password,photo,reg_time) VALUES (NULL,'user1@mail.ru',1,'user 1','1y3foblp',NULL,'2018-11-13 14:52:00');
+INSERT INTO users (code,email,is_moderator,name,password,photo,reg_time) VALUES (NULL,'user2@mail.ru',0,'user 2','zdc97g7m',NULL,'2018-11-13 14:53:00');
+INSERT INTO users (code,email,is_moderator,name,password,photo,reg_time) VALUES (NULL,'user3@mail.ru',0,'user 3','txikt8pl',NULL,'2018-11-13 14:54:00');
 DELETE FROM posts;
 INSERT INTO posts (is_active,moderation_status,text,time,title,view_count,moderator_id,user_id) VALUES (1,'ACCEPTED','<h1>User 1 post!</h1><br>','2020-11-13 14:53:00','This is post of user1',0,1,1);
 INSERT INTO posts (is_active,moderation_status,text,time,title,view_count,moderator_id,user_id) VALUES (1,'ACCEPTED','<h1>User 1 post!</h1><br>','2020-11-13 14:54:00','This is post of user1',0,1,1);
@@ -15,6 +15,8 @@ INSERT INTO posts (is_active,moderation_status,text,time,title,view_count,modera
 INSERT INTO posts (is_active,moderation_status,text,time,title,view_count,moderator_id,user_id) VALUES (1,'NEW','User 3 post!','2020-11-15 14:56:00','This is post of user3',0,1,3);
 INSERT INTO posts (is_active,moderation_status,text,time,title,view_count,moderator_id,user_id) VALUES (0,'DECLINED','User 3 post!','2020-11-15 14:57:00','This is post of user3',0,1,3);
 INSERT INTO posts (is_active,moderation_status,text,time,title,view_count,moderator_id,user_id) VALUES (0,'ACCEPTED','User 3 post!','2020-11-15 14:58:00','This is post of user3',0,1,3);
+INSERT INTO posts (is_active,moderation_status,text,time,title,view_count,moderator_id,user_id) VALUES (1,'ACCEPTED','<h1>User 1 post!</h1><br>','2019-01-01 14:56:00','This is post of user1',0,1,1);
+
 DELETE FROM post_comments;
 INSERT INTO post_comments (text,time,parent_id,post_id,user_id) VALUES ('user 2 comment','2020-11-13 15:01:00',NULL,1,2);
 INSERT INTO post_comments (text,time,parent_id,post_id,user_id) VALUES ('user 3 comment','2020-11-13 15:00:00',NULL,1,3);
@@ -61,3 +63,4 @@ INSERT INTO tag2post (tag_id,post_id) VALUES (1,9);
 INSERT INTO tag2post (tag_id,post_id) VALUES (1,10);
 INSERT INTO tag2post (tag_id,post_id) VALUES (3,11);
 INSERT INTO tag2post (tag_id,post_id) VALUES (1,12);
+INSERT INTO tag2post (tag_id,post_id) VALUES (3,13);

@@ -3,6 +3,7 @@ package com.example.projects.blogengine.service;
 import com.example.projects.blogengine.api.response.TagWeightResponse;
 import com.example.projects.blogengine.api.response.TagsListResponse;
 import com.example.projects.blogengine.model.Tag;
+import com.example.projects.blogengine.repository.PostRepository;
 import com.example.projects.blogengine.repository.TagRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -16,6 +17,9 @@ public class GeneralResponseService {
 
     @Autowired
     private TagRepository tagRepository;
+
+    @Autowired
+    private PostRepository postRepository;
 
     public TagsListResponse getTagList(String query) {
         TagsListResponse response = new TagsListResponse();
@@ -36,3 +40,4 @@ public class GeneralResponseService {
         return response;
     }
 }
+
