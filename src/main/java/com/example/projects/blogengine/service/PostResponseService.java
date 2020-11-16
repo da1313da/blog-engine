@@ -7,9 +7,7 @@ import com.example.projects.blogengine.api.response.PostResponse;
 import com.example.projects.blogengine.model.Post;
 import com.example.projects.blogengine.model.PostComment;
 import com.example.projects.blogengine.model.Tag;
-import com.example.projects.blogengine.repository.CommentRepository;
 import com.example.projects.blogengine.repository.PostRepository;
-import com.example.projects.blogengine.repository.TagRepository;
 import com.example.projects.blogengine.utility.PageRequestWithOffset;
 import org.jsoup.Jsoup;
 import org.modelmapper.ModelMapper;
@@ -18,7 +16,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -30,22 +28,13 @@ import java.util.List;
 import java.util.Optional;
 
 
-@Component
-public class ResponseService {
+@Service
+public class PostResponseService {
 
-    private final Logger logger = LoggerFactory.getLogger(ResponseService.class);
+    private final Logger logger = LoggerFactory.getLogger(PostResponseService.class);
 
     @Autowired
     private PostRepository postRepository;
-
-    @Autowired
-    private CommentRepository commentRepository;
-
-    @Autowired
-    private TagRepository tagRepository;
-
-    @Autowired
-    private AuthService authService;
 
     @Autowired
     private ModelMapper mapper;

@@ -44,9 +44,9 @@ INSERT INTO post_votes (time,value,post_id,user_id) VALUES ('2020-11-15 14:57:00
 INSERT INTO post_votes (time,value,post_id,user_id) VALUES ('2020-11-15 15:05:00',1,12,1);
 INSERT INTO post_votes (time,value,post_id,user_id) VALUES ('2020-11-15 15:01:00',-1,12,2);
 DELETE FROM tags;
-INSERT INTO tags (name) VALUES ('tag 0');
-INSERT INTO tags (name) VALUES ('tag 1');
-INSERT INTO tags (name) VALUES ('tag 2');
+INSERT INTO tags (name) VALUES ('java');
+INSERT INTO tags (name) VALUES ('Spring');
+INSERT INTO tags (name) VALUES ('Hibernate');
 DELETE FROM tag2post;
 INSERT INTO tag2post (tag_id,post_id) VALUES (1,1);
 INSERT INTO tag2post (tag_id,post_id) VALUES (2,1);

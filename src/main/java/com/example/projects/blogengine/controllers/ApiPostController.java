@@ -2,7 +2,7 @@ package com.example.projects.blogengine.controllers;
 
 import com.example.projects.blogengine.api.response.PostListResponse;
 import com.example.projects.blogengine.api.response.PostResponse;
-import com.example.projects.blogengine.service.ResponseService;
+import com.example.projects.blogengine.service.PostResponseService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +19,7 @@ public class ApiPostController {
     private final Logger logger = LoggerFactory.getLogger(ApiPostController.class);
 
     @Autowired
-    private ResponseService responseService;
+    private PostResponseService responseService;
 
     @GetMapping("api/post")
     public PostListResponse getPostResponse(@RequestParam(name = "offset", required = false, defaultValue = "0") int offset,

@@ -33,6 +33,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.POST, "/api/auth/password").permitAll()
                 .antMatchers(HttpMethod.GET, "/login/change-password/**").permitAll()
                 .regexMatchers(HttpMethod.GET, "\\/api\\/post\\/\\d+$").permitAll()
+                .antMatchers(HttpMethod.GET, "/api/tag").permitAll()
             .anyRequest().authenticated()
             .and()
             .csrf().disable()
