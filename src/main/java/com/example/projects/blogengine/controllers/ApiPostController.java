@@ -1,11 +1,15 @@
 package com.example.projects.blogengine.controllers;
 
 import com.example.projects.blogengine.api.response.PostListResponse;
+import com.example.projects.blogengine.api.response.PostResponse;
 import com.example.projects.blogengine.service.ResponseService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -36,5 +40,14 @@ public class ApiPostController {
                                                   @RequestParam(name = "limit") int limit,
                                                   @RequestParam(name = "tag") String tag){
         return responseService.getPostListByTag(limit, offset, tag);
+    }
+
+    @GetMapping("api/post/{id}")
+    public ResponseEntity<PostResponse> getPostResponseByTag(@PathVariable int id){
+        PostResponse response = responseService.getPostById(id);
+        if (response == null){
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 }

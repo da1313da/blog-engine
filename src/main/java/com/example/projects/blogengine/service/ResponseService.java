@@ -1,8 +1,12 @@
 package com.example.projects.blogengine.service;
 
+import com.example.projects.blogengine.api.response.CommentListResponse;
 import com.example.projects.blogengine.api.response.PostAnnounceResponse;
 import com.example.projects.blogengine.api.response.PostListResponse;
+import com.example.projects.blogengine.api.response.PostResponse;
 import com.example.projects.blogengine.model.Post;
+import com.example.projects.blogengine.model.PostComment;
+import com.example.projects.blogengine.model.Tag;
 import com.example.projects.blogengine.repository.CommentRepository;
 import com.example.projects.blogengine.repository.PostRepository;
 import com.example.projects.blogengine.repository.TagRepository;
@@ -23,6 +27,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 
 @Component
@@ -107,5 +112,29 @@ public class ResponseService {
         response.setCount(postRepository.getPostsCountByTag(tag));
         response.setPosts(convertToPostResponse(postRepository.getPostsByTag(tag, page)));
         return response;
+    }
+
+    public PostResponse getPostById(int id) {
+        Optional<Post> optionalPost = postRepository.getPostById(id);
+        if (optionalPost.isEmpty()){
+            return null;
+        }
+        Post post = optionalPost.get();
+        PostResponse response = mapper.map(post, PostResponse.class);
+        response.setLikeCount((int) post.getVotes().stream().filter(postVote -> postVote.getValue() == 1).count());
+        response.setDislikeCount((int) post.getVotes().stream().filter(postVote -> postVote.getValue() == -1).count());
+        response.setTimestamp(post.getTime().toEpochSecond());
+        List<CommentListResponse> commentList = new ArrayList<>();
+        List<String> tags = new ArrayList<>();
+        for (PostComment postComment : post.getComments()) {
+            commentList.add(mapper.map(postComment, CommentListResponse.class));
+            //todo photo null
+        }
+        for (Tag tag : post.getTags()) {
+            tags.add(tag.getName());
+        }
+        response.setComments(commentList);
+        response.setTags(tags);
+        return  response;
     }
 }

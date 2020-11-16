@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface PostRepository extends JpaRepository<Post, Integer> {
     @Query("update Post p set p.viewCount = p.viewCount + 1 where p.id = ?1")
@@ -64,4 +65,8 @@ public interface PostRepository extends JpaRepository<Post, Integer> {
     @Query("select count(p) from Post p" +
             " where ?1 = any(select t.name from p.tags t) and p.isActive = 1 and p.moderationStatus = 'ACCEPTED' and p.time < now()")
     int getPostsCountByTag(String tag);
+
+    @EntityGraph(attributePaths = {"user", "votes.user", "comments.user"}, type = EntityGraph.EntityGraphType.LOAD)
+    @Query("select p from Post p where p.id = ?1 and p.isActive = 1 and p.moderationStatus = 'ACCEPTED' and p.time < now()")
+    Optional<Post> getPostById(int id);
 }
