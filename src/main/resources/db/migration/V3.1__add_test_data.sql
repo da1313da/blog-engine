@@ -46,17 +46,18 @@ INSERT INTO post_votes (time,value,post_id,user_id) VALUES ('2020-11-15 15:01:00
 DELETE FROM tags;
 INSERT INTO tags (name) VALUES ('tag 0');
 INSERT INTO tags (name) VALUES ('tag 1');
-INSERT INTO tags (name) VALUES ('tag 0');
+INSERT INTO tags (name) VALUES ('tag 2');
 DELETE FROM tag2post;
-INSERT INTO tag2post (tag_id,post_id) VALUES (2,1);//
-INSERT INTO tag2post (tag_id,post_id) VALUES (2,2);//
+INSERT INTO tag2post (tag_id,post_id) VALUES (1,1);
+INSERT INTO tag2post (tag_id,post_id) VALUES (2,1);
 INSERT INTO tag2post (tag_id,post_id) VALUES (2,3);
 INSERT INTO tag2post (tag_id,post_id) VALUES (1,4);
-INSERT INTO tag2post (tag_id,post_id) VALUES (3,5);//
+INSERT INTO tag2post (tag_id,post_id) VALUES (3,5);
 INSERT INTO tag2post (tag_id,post_id) VALUES (1,6);
 INSERT INTO tag2post (tag_id,post_id) VALUES (3,7);
 INSERT INTO tag2post (tag_id,post_id) VALUES (1,8);
-INSERT INTO tag2post (tag_id,post_id) VALUES (3,9);//
+INSERT INTO tag2post (tag_id,post_id) VALUES (3,9);
+INSERT INTO tag2post (tag_id,post_id) VALUES (1,9);
 INSERT INTO tag2post (tag_id,post_id) VALUES (1,10);
 INSERT INTO tag2post (tag_id,post_id) VALUES (3,11);
 INSERT INTO tag2post (tag_id,post_id) VALUES (1,12);

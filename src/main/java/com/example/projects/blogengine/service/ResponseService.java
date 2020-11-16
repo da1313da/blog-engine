@@ -1,17 +1,17 @@
 package com.example.projects.blogengine.service;
 
-import com.example.projects.blogengine.api.response.*;
+import com.example.projects.blogengine.api.response.PostAnnounceResponse;
+import com.example.projects.blogengine.api.response.PostListResponse;
 import com.example.projects.blogengine.model.Post;
 import com.example.projects.blogengine.repository.CommentRepository;
+import com.example.projects.blogengine.repository.PostRepository;
 import com.example.projects.blogengine.repository.TagRepository;
 import com.example.projects.blogengine.utility.PageRequestWithOffset;
-import com.example.projects.blogengine.repository.PostRepository;
 import org.jsoup.Jsoup;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
@@ -98,6 +98,14 @@ public class ResponseService {
         }catch (DateTimeParseException e){
             logger.info(e.toString());
         }
+        return response;
+    }
+
+    public PostListResponse getPostListByTag(int limit, int offset, String tag) {
+        PostListResponse response = new PostListResponse();
+        Pageable page = new PageRequestWithOffset(limit, offset, Sort.unsorted());
+        response.setCount(postRepository.getPostsCountByTag(tag));
+        response.setPosts(convertToPostResponse(postRepository.getPostsByTag(tag, page)));
         return response;
     }
 }

@@ -30,4 +30,11 @@ public class ApiPostController {
                                             @RequestParam(name = "date") String date){
         return responseService.getPostListByDate(limit, offset, date);
     }
+
+    @GetMapping("api/post/byTag")
+    public PostListResponse getPostResponseByTag(@RequestParam(name = "offset", required = false, defaultValue = "0") int offset,
+                                                  @RequestParam(name = "limit") int limit,
+                                                  @RequestParam(name = "tag") String tag){
+        return responseService.getPostListByTag(limit, offset, tag);
+    }
 }

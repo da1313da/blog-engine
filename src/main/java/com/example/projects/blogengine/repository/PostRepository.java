@@ -2,7 +2,6 @@ package com.example.projects.blogengine.repository;
 
 import com.example.projects.blogengine.model.Post;
 import com.example.projects.blogengine.model.Tag;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -56,4 +55,13 @@ public interface PostRepository extends JpaRepository<Post, Integer> {
     @Query("select count(p) from Post p" +
             " where p.isActive = 1 and p.moderationStatus = 'ACCEPTED' and p.time < now() and p.time between ?1 and ?2")
     int getPostsCountByDate(ZonedDateTime start, ZonedDateTime end);
+
+    @EntityGraph(attributePaths = {"user", "votes.user", "comments.user"}, type = EntityGraph.EntityGraphType.LOAD)
+    @Query("select p from Post p" +
+            " where ?1 = any(select t.name from p.tags t) and p.isActive = 1 and p.moderationStatus = 'ACCEPTED' and p.time < now()")
+    List<Post> getPostsByTag(String tag, Pageable pageable);
+
+    @Query("select count(p) from Post p" +
+            " where ?1 = any(select t.name from p.tags t) and p.isActive = 1 and p.moderationStatus = 'ACCEPTED' and p.time < now()")
+    int getPostsCountByTag(String tag);
 }
