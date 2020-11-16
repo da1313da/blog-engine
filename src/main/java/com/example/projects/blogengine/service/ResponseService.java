@@ -16,6 +16,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -79,4 +84,20 @@ public class ResponseService {
     }
 
 
+    public PostListResponse getPostListByDate(int limit, int offset, String date) {
+        PostListResponse response = new PostListResponse();
+        try{
+            String startTime = date + "T00:00:00";
+            String endTime = date + "T23:59:59";
+            ZonedDateTime startDate = ZonedDateTime.of(LocalDateTime.parse(startTime, DateTimeFormatter.ISO_LOCAL_DATE_TIME), ZoneId.of("UTC"));
+            ZonedDateTime endDate = ZonedDateTime.of(LocalDateTime.parse(endTime, DateTimeFormatter.ISO_LOCAL_DATE_TIME), ZoneId.of("UTC"));
+            Pageable page = new PageRequestWithOffset(limit, offset, Sort.unsorted());
+            response.setCount(postRepository.getPostsCountByDate(startDate, endDate));
+            List<Post> postsByDate = postRepository.getPostsByDate(startDate, endDate, page);
+            response.setPosts(convertToPostResponse(postsByDate));
+        }catch (DateTimeParseException e){
+            logger.info(e.toString());
+        }
+        return response;
+    }
 }

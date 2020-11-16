@@ -23,4 +23,11 @@ public class ApiPostController {
                                             @RequestParam(name = "mode") String mode){
         return responseService.getPostList(limit, offset, mode);
     }
+
+    @GetMapping("api/post/byDate")
+    public PostListResponse getPostResponseByDate(@RequestParam(name = "offset", required = false, defaultValue = "0") int offset,
+                                            @RequestParam(name = "limit") int limit,
+                                            @RequestParam(name = "date") String date){
+        return responseService.getPostListByDate(limit, offset, date);
+    }
 }
