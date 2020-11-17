@@ -2,14 +2,12 @@ package com.example.projects.blogengine.service;
 
 import com.example.projects.blogengine.api.request.ChangePasswordData;
 import com.example.projects.blogengine.api.request.EmailData;
-import com.example.projects.blogengine.api.request.LoginData;
 import com.example.projects.blogengine.api.request.RegistrationData;
 import com.example.projects.blogengine.api.response.*;
-import com.example.projects.blogengine.data.UserForLoginDto;
 import com.example.projects.blogengine.model.CaptchaCode;
 import com.example.projects.blogengine.model.User;
 import com.example.projects.blogengine.repository.CaptchaRepository;
-import com.example.projects.blogengine.repository.UsersRepository;
+import com.example.projects.blogengine.repository.UserRepository;
 import com.example.projects.blogengine.utility.TokenGenerator;
 import com.github.cage.GCage;
 import org.slf4j.Logger;
@@ -20,7 +18,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.imageio.ImageIO;
-import javax.servlet.http.HttpSession;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -30,7 +27,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 @Service
 public class AuthService {
@@ -38,7 +34,7 @@ public class AuthService {
     private final Logger logger = LoggerFactory.getLogger(AuthService.class);
 
     @Autowired
-    private UsersRepository usersRepository;
+    private UserRepository usersRepository;
 
     @Autowired
     private CaptchaRepository captchaRepository;
@@ -81,65 +77,12 @@ public class AuthService {
         return response;
     }
 
-    public LoginResponse getLoginResponse(LoginData loginData, HttpSession session){
-        User user = usersRepository.getUserByEmail(loginData.getEmail());
-        LoginResponse response = new LoginResponse();
-        UserForLoginDto userDto = new UserForLoginDto();
-        if (user != null && passwordEncoder.matches(loginData.getPassword(), user.getPassword())){
-            synchronized (sessionId){
-                sessionId.put(session.getId(), user.getId());
-            }
-            userDto.setId(user.getId());
-            userDto.setEmail(user.getEmail());
-            userDto.setModeration(user.getIsModerator() == 1);
-            userDto.setModerationCount(usersRepository.getModeratedPostsCount(user).orElse(0));
-            userDto.setPhoto(user.getPhoto());
-            userDto.setSettings(user.getIsModerator() == 1);
-            response.setResult(true);
-            response.setUser(userDto);
-            logger.info(session.getId());
-        } else {
-            response.setResult(false);
-        }
-        return response;
-    }
-
-
-    public LoginResponse getUserStatus(HttpSession session) {
-        LoginResponse response = new LoginResponse();
-        Integer userId;
-        synchronized (sessionId){
-            userId = sessionId.get(session.getId());
-        }
-        if (userId != null){
-            Optional<User> userOtp = usersRepository.findById(userId);
-            if (userOtp.isEmpty()){
-                //exception
-                response.setResult(false);
-                return response;
-            }
-            User user = userOtp.get();
-            UserForLoginDto userDto = new UserForLoginDto();
-            userDto.setId(user.getId());
-            userDto.setEmail(user.getEmail());
-            userDto.setModeration(user.getIsModerator() == 1);
-            userDto.setModerationCount(usersRepository.getModeratedPostsCount(user).orElse(0));
-            userDto.setPhoto(user.getPhoto());
-            userDto.setSettings(user.getIsModerator() == 1);
-            response.setUser(userDto);
-            response.setResult(true);
-        } else {
-            response.setResult(false);
-        }
-        return response;
-    }
-
     public RegistrationResponse getRegistrationResponse(RegistrationData registrationData) {
         CaptchaCode captcha = captchaRepository.getBySecretCode(registrationData.getCaptchaSecret()).orElseThrow(IllegalArgumentException::new);//todo new exe?
         RegistrationErrors errors = new RegistrationErrors();
         RegistrationResponse response = new RegistrationResponse();
         boolean isErrorPresent = false;
-        if (usersRepository.getUserByEmail(registrationData.getEmail()) != null){
+        if (usersRepository.getUserByEmailExpl(registrationData.getEmail()) != null){
             errors.setEmail("Этот e-mail уже зарегистрирован");
             isErrorPresent = true;
         }
@@ -171,7 +114,7 @@ public class AuthService {
     }
 
     public BooleanResponse getRestoreResult(EmailData email) {
-        User user = usersRepository.getUserByEmail(email.getEmail());
+        User user = usersRepository.getUserByEmailExpl(email.getEmail());
         BooleanResponse response = new BooleanResponse();
         if (user != null){
             String code = TokenGenerator.getToken(30);

@@ -14,7 +14,7 @@ import java.util.Set;
 @Data
 @Entity
 @Table(name = "users")
-@EqualsAndHashCode(exclude = {"regularPosts", "moderationPosts", "comments", "votes"})
+@EqualsAndHashCode(exclude = {"posts", "postsToModerate", "comments", "votes"})
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -43,12 +43,12 @@ public class User {
     @JsonIgnore
     @ToString.Exclude
     @OneToMany(mappedBy = "user", cascade = CascadeType.PERSIST)
-    private Set<Post> regularPosts = new HashSet<>();
+    private Set<Post> posts = new HashSet<>();
 
     @JsonIgnore
     @ToString.Exclude
     @OneToMany(mappedBy = "moderator", cascade = CascadeType.PERSIST)
-    private Set<Post> moderationPosts = new HashSet<>();
+    private Set<Post> postsToModerate = new HashSet<>();
 
     @JsonIgnore
     @ToString.Exclude
@@ -63,5 +63,9 @@ public class User {
     @PrePersist
     private void prePersist(){
         regTime = ZonedDateTime.now(ZoneId.of("UTC"));
+    }
+
+    public Role getRole(){
+        return isModerator == 1 ? Role.MODERATOR : Role.USER;
     }
 }

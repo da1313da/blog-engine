@@ -1,4 +1,4 @@
-package com.example.projects.blogengine.service;
+package com.example.projects.blogengine.service.interfaces;
 
 import com.example.projects.blogengine.api.response.CalendarResponse;
 

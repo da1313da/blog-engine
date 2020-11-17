@@ -9,5 +9,4 @@ public class BlogEngineApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(BlogEngineApplication.class, args);
 	}
-
 }

@@ -1,12 +1,13 @@
 package com.example.projects.blogengine.service;
 
+import com.example.projects.blogengine.service.interfaces.EmailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
 @Service
-public class SpringEmailService implements EmailService{
+public class SpringEmailService implements EmailService {
 
     @Autowired
     private JavaMailSender mailSender;

@@ -2,6 +2,7 @@ package com.example.projects.blogengine.repository;
 
 import com.example.projects.blogengine.model.Post;
 import com.example.projects.blogengine.model.Tag;
+import com.example.projects.blogengine.model.User;
 import com.example.projects.blogengine.repository.projections.CalendarStatistics;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -80,4 +81,7 @@ public interface PostRepository extends JpaRepository<Post, Integer> {
 
     @Query("select distinct year(p.time) from Post p")
     List<Integer> getYears();
+
+    @Query("select count(p) from Post p where p.moderationStatus = 'NEW' and p.moderator = ?1")
+    int getPostCountModeratedByUser(User user);
 }

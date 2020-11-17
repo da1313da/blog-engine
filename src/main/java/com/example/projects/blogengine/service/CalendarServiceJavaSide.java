@@ -3,6 +3,7 @@ package com.example.projects.blogengine.service;
 import com.example.projects.blogengine.api.response.CalendarResponse;
 import com.example.projects.blogengine.model.Post;
 import com.example.projects.blogengine.repository.PostRepository;
+import com.example.projects.blogengine.service.interfaces.CalendarService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

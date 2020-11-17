@@ -2,19 +2,22 @@ package com.example.projects.blogengine.controllers;
 
 import com.example.projects.blogengine.api.request.ChangePasswordData;
 import com.example.projects.blogengine.api.request.EmailData;
-import com.example.projects.blogengine.api.request.LoginData;
+import com.example.projects.blogengine.api.request.LoginRequest;
 import com.example.projects.blogengine.api.request.RegistrationData;
 import com.example.projects.blogengine.api.response.*;
 import com.example.projects.blogengine.service.AuthService;
+import com.example.projects.blogengine.service.interfaces.AuthCheckService;
+import com.example.projects.blogengine.service.interfaces.UserLoginService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.servlet.http.HttpSession;
+import java.security.Principal;
 
 @RestController
 public class ApiAuthController {
@@ -24,14 +27,20 @@ public class ApiAuthController {
     @Autowired
     private AuthService authService;
 
+    @Autowired
+    private UserLoginService userLoginService;
+
+    @Autowired
+    private AuthCheckService authCheckService;
+
     @PostMapping(value = "/api/auth/login", consumes = {"application/json"})
-    public LoginResponse logIn(@RequestBody LoginData loginData, HttpSession session){
-        return authService.getLoginResponse(loginData, session);
+    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest loginRequest){
+        return ResponseEntity.ok(userLoginService.getLoginResponse(loginRequest));
     }
 
     @GetMapping("/api/auth/check")
-    public LoginResponse statusChek(HttpSession session){
-        return authService.getUserStatus(session);
+    public LoginResponse statusChek(Principal principal){
+        return authCheckService.getUserStatus(principal);
     }
 
     @PostMapping("/api/auth/register")
