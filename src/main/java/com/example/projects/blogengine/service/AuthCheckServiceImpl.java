@@ -35,7 +35,7 @@ public class AuthCheckServiceImpl implements AuthCheckService {
         User user = userRepository.getUserByEmail(principal.getName()).orElseThrow(() -> new UsernameNotFoundException(principal.getName() + " not found"));
         UserLoginResponse userLoginResponse = modelMapper.map(user, UserLoginResponse.class);
         userLoginResponse.setModeration(user.getIsModerator() == 1);
-        userLoginResponse.setModerationCount(user.getIsModerator() == 1? postRepository.getPostsModeratedByUserCount(user, ModerationType.NEW) : 0);
+        userLoginResponse.setModerationCount(user.getIsModerator() == 1? postRepository.getModeratedPostCount(user, ModerationType.NEW) : 0);
         userLoginResponse.setSettings(user.getIsModerator() == 1);
         response.setUser(userLoginResponse);
         return response;

@@ -24,7 +24,6 @@ public class ApiPostController {
     @Autowired
     private PostResponseService responseService;
 
-    @PreAuthorize("hasAuthority('user:write')")
     @GetMapping("api/post")
     public PostListResponse getPostResponse(@RequestParam(name = "offset", required = false, defaultValue = "0") int offset,
                                             @RequestParam(name = "limit") int limit,
@@ -48,7 +47,7 @@ public class ApiPostController {
 
     @PreAuthorize("hasAuthority('user:moderate')")
     @GetMapping("api/post/moderation")
-    public PostListResponse getPostResponseToModeration(@RequestParam(name = "offset", required = false, defaultValue = "0") int offset,
+    public PostListResponse getModeratorPosts(@RequestParam(name = "offset", required = false, defaultValue = "0") int offset,
                                                  @RequestParam(name = "limit") int limit,
                                                  @RequestParam(name = "status") String status,
                                                         @AuthenticationPrincipal UserDetailsImpl user){
@@ -63,5 +62,14 @@ public class ApiPostController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
         return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @PreAuthorize("hasAuthority('user:write')")
+    @GetMapping("/api/post/my")
+    public PostListResponse getUserPosts(@RequestParam int offset,
+                                         @RequestParam int limit,
+                                         @RequestParam String status,
+                                         @AuthenticationPrincipal UserDetailsImpl user){
+        return responseService.getUserPosts(offset, limit, status, user);
     }
 }

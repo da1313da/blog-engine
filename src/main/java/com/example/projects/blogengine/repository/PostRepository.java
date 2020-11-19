@@ -88,8 +88,18 @@ public interface PostRepository extends JpaRepository<Post, Integer> {
             " left join p.comments pc" +
             " where p.moderator = ?1 and p.isActive = 1 and p.moderationStatus = ?2" +
             " order by pc.size desc")
-    List<Post> getPostsModeratedByUser(User user, ModerationType status, Pageable pageable);
+    List<Post> getModeratedPosts(User user, ModerationType status, Pageable pageable);
 
     @Query("select count(p) from Post p where p.moderator = ?1 and p.isActive = 1 and p.moderationStatus = ?2")
-    int getPostsModeratedByUserCount(User user, ModerationType status);
+    int getModeratedPostCount(User user, ModerationType status);
+
+    @EntityGraph(attributePaths = {"user", "votes.user", "comments.user"}, type = EntityGraph.EntityGraphType.LOAD)
+    @Query("select p from Post p" +
+            " left join p.comments pc" +
+            " where p.user = ?1 and p.isActive = ?3 and p.moderationStatus in ?2" +
+            " order by pc.size desc")
+    List<Post> getUserPosts(User user, List<ModerationType> status, byte isActive,  Pageable pageable);
+
+    @Query("select count(p) from Post p where p.user = ?1 and p.isActive = ?3 and p.moderationStatus in ?2")
+    int getUserPostsCount(User user, List<ModerationType> status, byte isActive);
 }

@@ -133,9 +133,41 @@ public class PostResponseService {
         PostListResponse response = new PostListResponse();
         PageRequestWithOffset page = new PageRequestWithOffset(limit, offset, Sort.unsorted());
         ModerationType type = ModerationType.valueOf(status.toUpperCase());
-        List<Post> postsModeratedByUser = postRepository.getPostsModeratedByUser(user.getUser(), type, page);
-        response.setCount(postRepository.getPostsModeratedByUserCount(user.getUser(), type));
+        List<Post> postsModeratedByUser = postRepository.getModeratedPosts(user.getUser(), type, page);
+        response.setCount(postRepository.getModeratedPostCount(user.getUser(), type));
         response.setPosts(convertToPostResponse(postsModeratedByUser));
+        return response;
+    }
+
+    public PostListResponse getUserPosts(int offset, int limit, String status, UserDetailsImpl user) {
+        PostListResponse response = new PostListResponse();
+        PageRequestWithOffset page = new PageRequestWithOffset(limit, offset, Sort.unsorted());
+        switch (status){
+            case "inactive":
+                response.setPosts(convertToPostResponse(postRepository.getUserPosts(user.getUser(),
+                        List.of(ModerationType.NEW, ModerationType.ACCEPTED, ModerationType.DECLINED), (byte) 0, page)));
+                response.setCount(postRepository.getUserPostsCount(user.getUser(),
+                        List.of(ModerationType.NEW, ModerationType.ACCEPTED, ModerationType.DECLINED), (byte) 0));
+                break;
+            case "pending":
+                response.setPosts(convertToPostResponse(postRepository.getUserPosts(user.getUser(),
+                        List.of(ModerationType.NEW), (byte) 1, page)));
+                response.setCount(postRepository.getUserPostsCount(user.getUser(),
+                        List.of(ModerationType.NEW), (byte) 1));
+                break;
+            case "declined":
+                response.setPosts(convertToPostResponse(postRepository.getUserPosts(user.getUser(),
+                        List.of(ModerationType.DECLINED), (byte) 1, page)));
+                response.setCount(postRepository.getUserPostsCount(user.getUser(),
+                        List.of(ModerationType.DECLINED), (byte) 1));
+                break;
+            case "published":
+                response.setPosts(convertToPostResponse(postRepository.getUserPosts(user.getUser(),
+                        List.of(ModerationType.ACCEPTED), (byte) 1, page)));
+                response.setCount(postRepository.getUserPostsCount(user.getUser(),
+                        List.of(ModerationType.ACCEPTED), (byte) 1));
+                break;
+        }
         return response;
     }
 }
