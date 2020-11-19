@@ -105,12 +105,16 @@ public class PostResponseService {
         return response;
     }
 
-    public PostResponse getPostById(int id) {
+    public PostResponse getPostById(int id, UserDetailsImpl user) {
         Optional<Post> optionalPost = postRepository.getPostById(id);
         if (optionalPost.isEmpty()){
             return null;
         }
         Post post = optionalPost.get();
+        if (user != null && user.getUser().getIsModerator() != 1 && !post.getUser().getId().equals(user.getUser().getId())){
+            post.setViewCount(post.getViewCount() + 1);
+            postRepository.save(post);
+        }
         PostResponse response = mapper.map(post, PostResponse.class);
         response.setLikeCount((int) post.getVotes().stream().filter(postVote -> postVote.getValue() == 1).count());
         response.setDislikeCount((int) post.getVotes().stream().filter(postVote -> postVote.getValue() == -1).count());

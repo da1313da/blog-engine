@@ -56,8 +56,8 @@ public class ApiPostController {
     }
 
     @GetMapping("api/post/{id}")
-    public ResponseEntity<PostResponse> getPostResponseByTag(@PathVariable int id){
-        PostResponse response = responseService.getPostById(id);
+    public ResponseEntity<PostResponse> getPostResponseByTag(@PathVariable int id, @AuthenticationPrincipal UserDetailsImpl user){
+        PostResponse response = responseService.getPostById(id, user);
         if (response == null){
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }

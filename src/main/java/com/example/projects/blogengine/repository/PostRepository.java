@@ -2,7 +2,6 @@ package com.example.projects.blogengine.repository;
 
 import com.example.projects.blogengine.model.ModerationType;
 import com.example.projects.blogengine.model.Post;
-import com.example.projects.blogengine.model.Tag;
 import com.example.projects.blogengine.model.User;
 import com.example.projects.blogengine.repository.projections.CalendarStatistics;
 import org.springframework.data.domain.Pageable;
@@ -16,11 +15,6 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 public interface PostRepository extends JpaRepository<Post, Integer> {
-    @Query("update Post p set p.viewCount = p.viewCount + 1 where p.id = ?1")
-    void increaseViewCount(Integer id);
-
-    @Query("select p from Post p where ?1 member of p.tags")
-    List<Post> getTest(Tag t);
 
     @EntityGraph(attributePaths = {"user", "votes.user", "comments.user"}, type = EntityGraph.EntityGraphType.LOAD)
     @Query("select p from Post p" +
