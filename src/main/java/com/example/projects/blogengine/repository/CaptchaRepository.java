@@ -8,9 +8,10 @@ import org.springframework.data.repository.CrudRepository;
 import java.util.Optional;
 
 public interface CaptchaRepository extends CrudRepository<CaptchaCode, Integer> {
+
     @Modifying
-    @Query(value = "delete from captcha_codes cc where date_add(cc.time, interval 1 hour) < ?1 and cc.id > 0", nativeQuery = true)
-    void deleteCaptchaCodes(String time);
+    @Query("delete from CaptchaCode c where c.time + 3600 < now()")
+    void deleteCaptchaCodes();
 
     Optional<CaptchaCode> getBySecretCode(String secretCode);
 }

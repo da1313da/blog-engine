@@ -2,6 +2,7 @@ package com.example.projects.blogengine.controllers;
 
 import com.example.projects.blogengine.api.response.PostListResponse;
 import com.example.projects.blogengine.api.response.PostResponse;
+import com.example.projects.blogengine.security.UserDetailsImpl;
 import com.example.projects.blogengine.service.PostResponseService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -42,6 +44,16 @@ public class ApiPostController {
                                                   @RequestParam(name = "limit") int limit,
                                                   @RequestParam(name = "tag") String tag){
         return responseService.getPostListByTag(limit, offset, tag);
+    }
+
+    @PreAuthorize("hasAuthority('user:moderate')")
+    @GetMapping("api/post/moderation")
+    public PostListResponse getPostResponseToModeration(@RequestParam(name = "offset", required = false, defaultValue = "0") int offset,
+                                                 @RequestParam(name = "limit") int limit,
+                                                 @RequestParam(name = "status") String status,
+                                                        @AuthenticationPrincipal UserDetailsImpl user){
+
+        return responseService.getPostListToModeration(limit, offset, status, user);
     }
 
     @GetMapping("api/post/{id}")

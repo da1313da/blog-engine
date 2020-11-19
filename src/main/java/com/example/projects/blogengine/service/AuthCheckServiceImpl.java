@@ -2,6 +2,7 @@ package com.example.projects.blogengine.service;
 
 import com.example.projects.blogengine.api.response.LoginResponse;
 import com.example.projects.blogengine.api.response.UserLoginResponse;
+import com.example.projects.blogengine.model.ModerationType;
 import com.example.projects.blogengine.model.User;
 import com.example.projects.blogengine.repository.PostRepository;
 import com.example.projects.blogengine.repository.UserRepository;
@@ -34,7 +35,7 @@ public class AuthCheckServiceImpl implements AuthCheckService {
         User user = userRepository.getUserByEmail(principal.getName()).orElseThrow(() -> new UsernameNotFoundException(principal.getName() + " not found"));
         UserLoginResponse userLoginResponse = modelMapper.map(user, UserLoginResponse.class);
         userLoginResponse.setModeration(user.getIsModerator() == 1);
-        userLoginResponse.setModerationCount(user.getIsModerator() == 1? postRepository.getPostCountModeratedByUser(user) : 0);
+        userLoginResponse.setModerationCount(user.getIsModerator() == 1? postRepository.getPostsModeratedByUserCount(user, ModerationType.NEW) : 0);
         userLoginResponse.setSettings(user.getIsModerator() == 1);
         response.setUser(userLoginResponse);
         return response;

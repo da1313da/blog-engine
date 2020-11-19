@@ -3,6 +3,7 @@ package com.example.projects.blogengine.service;
 import com.example.projects.blogengine.api.request.LoginRequest;
 import com.example.projects.blogengine.api.response.LoginResponse;
 import com.example.projects.blogengine.api.response.UserLoginResponse;
+import com.example.projects.blogengine.model.ModerationType;
 import com.example.projects.blogengine.model.User;
 import com.example.projects.blogengine.repository.PostRepository;
 import com.example.projects.blogengine.repository.UserRepository;
@@ -45,7 +46,7 @@ public class UserLoginServiceImpl implements UserLoginService {
         User user = details.getUser();
         UserLoginResponse userLoginResponse = modelMapper.map(user, UserLoginResponse.class);
         userLoginResponse.setModeration(user.getIsModerator() == 1);
-        userLoginResponse.setModerationCount(user.getIsModerator() == 1? postRepository.getPostCountModeratedByUser(user) : 0);
+        userLoginResponse.setModerationCount(user.getIsModerator() == 1? postRepository.getPostsModeratedByUserCount(user, ModerationType.NEW) : 0);
         userLoginResponse.setSettings(user.getIsModerator() == 1);
         response.setUser(userLoginResponse);
         return response;

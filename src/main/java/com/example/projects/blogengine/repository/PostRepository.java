@@ -1,5 +1,6 @@
 package com.example.projects.blogengine.repository;
 
+import com.example.projects.blogengine.model.ModerationType;
 import com.example.projects.blogengine.model.Post;
 import com.example.projects.blogengine.model.Tag;
 import com.example.projects.blogengine.model.User;
@@ -82,6 +83,13 @@ public interface PostRepository extends JpaRepository<Post, Integer> {
     @Query("select distinct year(p.time) from Post p")
     List<Integer> getYears();
 
-    @Query("select count(p) from Post p where p.moderationStatus = 'NEW' and p.moderator = ?1")
-    int getPostCountModeratedByUser(User user);
+    @EntityGraph(attributePaths = {"user", "votes.user", "comments.user"}, type = EntityGraph.EntityGraphType.LOAD)
+    @Query("select p from Post p" +
+            " left join p.comments pc" +
+            " where p.moderator = ?1 and p.isActive = 1 and p.moderationStatus = ?2" +
+            " order by pc.size desc")
+    List<Post> getPostsModeratedByUser(User user, ModerationType status, Pageable pageable);
+
+    @Query("select count(p) from Post p where p.moderator = ?1 and p.isActive = 1 and p.moderationStatus = ?2")
+    int getPostsModeratedByUserCount(User user, ModerationType status);
 }

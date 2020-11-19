@@ -8,7 +8,7 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-public class RegistrationData {
+public class RegistrationRequest {
     @JsonProperty("e_mail")
     String email;
     String password;

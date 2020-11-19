@@ -2,7 +2,7 @@ package com.example.projects.blogengine.service;
 
 import com.example.projects.blogengine.api.request.ChangePasswordData;
 import com.example.projects.blogengine.api.request.EmailData;
-import com.example.projects.blogengine.api.request.RegistrationData;
+import com.example.projects.blogengine.api.request.RegistrationRequest;
 import com.example.projects.blogengine.api.response.*;
 import com.example.projects.blogengine.model.CaptchaCode;
 import com.example.projects.blogengine.model.User;
@@ -21,12 +21,7 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Base64;
-import java.util.HashMap;
-import java.util.Map;
 
 @Service
 public class AuthService {
@@ -45,12 +40,9 @@ public class AuthService {
     @Autowired
     private SpringEmailService emailService;
 
-    private final Map<String, Integer> sessionId = new HashMap<>();
-
     @Transactional
     public CaptchaResponse getCaptchaResponse() {//todo move hardcoded values to props?
-        String date = ZonedDateTime.now(ZoneId.of("UTC")).toLocalDateTime().format(DateTimeFormatter.ISO_DATE_TIME);
-        captchaRepository.deleteCaptchaCodes(date);
+        captchaRepository.deleteCaptchaCodes();
         GCage cage = new GCage();
         CaptchaResponse response = new CaptchaResponse();
         String secret = TokenGenerator.getToken(20);
@@ -66,7 +58,6 @@ public class AuthService {
         }
         byte[] byteArray = buffer.toByteArray();
         String encodedImage = Base64.getEncoder().encodeToString(byteArray);
-        logger.info(encodedImage);
         String image = "data:image/png;base64, " + encodedImage;
         CaptchaCode captchaCode = new CaptchaCode();
         captchaCode.setCode(code);
@@ -77,24 +68,24 @@ public class AuthService {
         return response;
     }
 
-    public RegistrationResponse getRegistrationResponse(RegistrationData registrationData) {
-        CaptchaCode captcha = captchaRepository.getBySecretCode(registrationData.getCaptchaSecret()).orElseThrow(IllegalArgumentException::new);//todo new exe?
+    public RegistrationResponse getRegistrationResponse(RegistrationRequest registrationRequest) {
+        CaptchaCode captcha = captchaRepository.getBySecretCode(registrationRequest.getCaptchaSecret()).orElseThrow(IllegalArgumentException::new);//todo new exe?
         RegistrationErrors errors = new RegistrationErrors();
         RegistrationResponse response = new RegistrationResponse();
         boolean isErrorPresent = false;
-        if (usersRepository.getUserByEmailExpl(registrationData.getEmail()) != null){
+        if (usersRepository.getUserByEmail(registrationRequest.getEmail()).isPresent()){
             errors.setEmail("Этот e-mail уже зарегистрирован");
             isErrorPresent = true;
         }
-        if(registrationData.getPassword().length() < 6){
+        if(registrationRequest.getPassword().length() < 6){
             errors.setPassword("Пароль короче 6-ти символов");
             isErrorPresent = true;
         }
-        if (!registrationData.getCaptcha().equals(captcha.getCode())){
+        if (!registrationRequest.getCaptcha().equals(captcha.getCode())){
             errors.setCaptcha("Код с картинки введён неверно");
             isErrorPresent = true;
         }
-        if (registrationData.getName().contains("?")){
+        if (registrationRequest.getName().contains("?")){
             //todo any name conditions?
             isErrorPresent = true;
         }
@@ -103,10 +94,10 @@ public class AuthService {
             response.setErrors(errors);
         } else {
             User user = new User();
-            user.setPassword(passwordEncoder.encode(registrationData.getPassword()));
-            user.setName(registrationData.getName());
-            user.setEmail(registrationData.getEmail());
-            user.setIsModerator((byte) 0);
+            user.setPassword(passwordEncoder.encode(registrationRequest.getPassword()));
+            user.setName(registrationRequest.getName());
+            user.setEmail(registrationRequest.getEmail());
+            user.setIsModerator((byte) 0);//todo
             usersRepository.save(user);
             response.setResult(true);
         }
@@ -161,9 +152,5 @@ public class AuthService {
             response.setErrors(errors);
         }
         return response;
-    }
-
-    public Map<String, Integer> getSessionId() {
-        return sessionId;
     }
 }

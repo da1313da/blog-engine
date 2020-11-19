@@ -3,7 +3,7 @@ package com.example.projects.blogengine.controllers;
 import com.example.projects.blogengine.api.request.ChangePasswordData;
 import com.example.projects.blogengine.api.request.EmailData;
 import com.example.projects.blogengine.api.request.LoginRequest;
-import com.example.projects.blogengine.api.request.RegistrationData;
+import com.example.projects.blogengine.api.request.RegistrationRequest;
 import com.example.projects.blogengine.api.response.*;
 import com.example.projects.blogengine.service.AuthService;
 import com.example.projects.blogengine.service.interfaces.AuthCheckService;
@@ -44,7 +44,7 @@ public class ApiAuthController {
     }
 
     @PostMapping("/api/auth/register")
-    public RegistrationResponse registration(@RequestBody RegistrationData registrationData){
+    public RegistrationResponse registration(@RequestBody RegistrationRequest registrationData){
         return authService.getRegistrationResponse(registrationData);
     }
 

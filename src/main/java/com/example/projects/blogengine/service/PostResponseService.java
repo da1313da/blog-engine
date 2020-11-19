@@ -4,10 +4,12 @@ import com.example.projects.blogengine.api.response.CommentListResponse;
 import com.example.projects.blogengine.api.response.PostAnnounceResponse;
 import com.example.projects.blogengine.api.response.PostListResponse;
 import com.example.projects.blogengine.api.response.PostResponse;
+import com.example.projects.blogengine.model.ModerationType;
 import com.example.projects.blogengine.model.Post;
 import com.example.projects.blogengine.model.PostComment;
 import com.example.projects.blogengine.model.Tag;
 import com.example.projects.blogengine.repository.PostRepository;
+import com.example.projects.blogengine.security.UserDetailsImpl;
 import com.example.projects.blogengine.utility.PageRequestWithOffset;
 import org.jsoup.Jsoup;
 import org.modelmapper.ModelMapper;
@@ -125,5 +127,15 @@ public class PostResponseService {
         response.setComments(commentList);
         response.setTags(tags);
         return  response;
+    }
+
+    public PostListResponse getPostListToModeration(int limit, int offset, String status, UserDetailsImpl user) {
+        PostListResponse response = new PostListResponse();
+        PageRequestWithOffset page = new PageRequestWithOffset(limit, offset, Sort.unsorted());
+        ModerationType type = ModerationType.valueOf(status.toUpperCase());
+        List<Post> postsModeratedByUser = postRepository.getPostsModeratedByUser(user.getUser(), type, page);
+        response.setCount(postRepository.getPostsModeratedByUserCount(user.getUser(), type));
+        response.setPosts(convertToPostResponse(postsModeratedByUser));
+        return response;
     }
 }
