@@ -1,7 +1,7 @@
 package com.example.projects.blogengine.service;
 
-import com.example.projects.blogengine.api.request.ChangePasswordData;
-import com.example.projects.blogengine.api.request.EmailData;
+import com.example.projects.blogengine.api.request.ChangePasswordRequest;
+import com.example.projects.blogengine.api.request.EmailRequest;
 import com.example.projects.blogengine.api.request.RegistrationRequest;
 import com.example.projects.blogengine.api.response.*;
 import com.example.projects.blogengine.model.CaptchaCode;
@@ -70,7 +70,7 @@ public class AuthService {
 
     public RegistrationResponse getRegistrationResponse(RegistrationRequest registrationRequest) {
         CaptchaCode captcha = captchaRepository.getBySecretCode(registrationRequest.getCaptchaSecret()).orElseThrow(IllegalArgumentException::new);//todo new exe?
-        RegistrationErrors errors = new RegistrationErrors();
+        RegistrationErrorsResponse errors = new RegistrationErrorsResponse();
         RegistrationResponse response = new RegistrationResponse();
         boolean isErrorPresent = false;
         if (usersRepository.getUserByEmail(registrationRequest.getEmail()).isPresent()){
@@ -104,7 +104,7 @@ public class AuthService {
         return response;
     }
 
-    public BooleanResponse getRestoreResult(EmailData email) {
+    public BooleanResponse getRestoreResult(EmailRequest email) {
         User user = usersRepository.getUserByEmailExpl(email.getEmail());
         BooleanResponse response = new BooleanResponse();
         if (user != null){
@@ -121,9 +121,9 @@ public class AuthService {
         return response;
     }
 
-    public ChangePasswordResponse getChangePasswordRequest(ChangePasswordData changePasswordData) {
+    public ChangePasswordResponse getChangePasswordRequest(ChangePasswordRequest changePasswordData) {
         User users = usersRepository.getByCode(changePasswordData.getCode());
-        ChangePasswordErrors errors = new ChangePasswordErrors();
+        ChangePasswordErrorsResponse errors = new ChangePasswordErrorsResponse();
         ChangePasswordResponse response = new ChangePasswordResponse();
         if (users != null){
             CaptchaCode captchaCode = captchaRepository.getBySecretCode(changePasswordData.getCaptchaSecret()).orElseThrow(IllegalArgumentException::new);

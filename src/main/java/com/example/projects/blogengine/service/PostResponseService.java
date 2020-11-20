@@ -1,14 +1,11 @@
 package com.example.projects.blogengine.service;
 
-import com.example.projects.blogengine.api.response.CommentListResponse;
-import com.example.projects.blogengine.api.response.PostAnnounceResponse;
-import com.example.projects.blogengine.api.response.PostListResponse;
-import com.example.projects.blogengine.api.response.PostResponse;
-import com.example.projects.blogengine.model.ModerationType;
-import com.example.projects.blogengine.model.Post;
-import com.example.projects.blogengine.model.PostComment;
-import com.example.projects.blogengine.model.Tag;
+import com.example.projects.blogengine.api.request.CreatePostRequest;
+import com.example.projects.blogengine.api.response.*;
+import com.example.projects.blogengine.model.*;
 import com.example.projects.blogengine.repository.PostRepository;
+import com.example.projects.blogengine.repository.TagRepository;
+import com.example.projects.blogengine.repository.UserRepository;
 import com.example.projects.blogengine.security.UserDetailsImpl;
 import com.example.projects.blogengine.utility.PageRequestWithOffset;
 import org.jsoup.Jsoup;
@@ -18,10 +15,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -37,6 +36,12 @@ public class PostResponseService {
 
     @Autowired
     private PostRepository postRepository;
+
+    @Autowired
+    private TagRepository tagRepository;
+
+    @Autowired
+    private UserRepository userRepository;
 
     @Autowired
     private ModelMapper mapper;
@@ -171,6 +176,54 @@ public class PostResponseService {
                 response.setCount(postRepository.getUserPostsCount(user.getUser(),
                         List.of(ModerationType.ACCEPTED), (byte) 1));
                 break;
+        }
+        return response;
+    }
+
+    public CreatePostResponse createPost(CreatePostRequest request, UserDetailsImpl user) {
+        Post post = new Post();
+        CreatePostResponse response = new CreatePostResponse();
+        CreatePostErrorsResponse errors = new CreatePostErrorsResponse();
+        boolean isError = false;
+        if (request.getTitle() == null) {
+            errors.setTitle("Заголовок не установлен");
+            isError = true;
+        } else if(request.getText() == null){
+            errors.setText("Текст не установлен");
+            isError = true;
+        } else if (request.getTitle().length() <= 3){
+            errors.setTitle("Заголовок публикации слишком короткий");
+            isError = true;
+        } else if (request.getText().length() <= 50){
+            errors.setText("Текст публикации слишком короткий");
+            isError = true;
+        }
+        List<Tag> tags = tagRepository.getTagsByName(request.getTags());
+        if (tags.isEmpty()) isError = true;
+        if (isError){
+            response.setErrors(errors);
+        } else {
+            ZonedDateTime postTime = ZonedDateTime.of(LocalDateTime.ofEpochSecond(request.getTimestamp(), 0, ZoneOffset.UTC), ZoneId.of("UTC"));
+            if (postTime.compareTo(ZonedDateTime.now(ZoneId.of("UTC"))) < 0) {
+                postTime = ZonedDateTime.now(ZoneId.of("UTC"));
+            }
+            post.setIsActive((byte) request.getActive());
+            post.setText(request.getText());
+            User actualUser = userRepository.findById(user.getUser().getId()).orElseThrow(() -> new UsernameNotFoundException("!"));
+            post.setUser(actualUser);
+            //todo how to select moderator ?
+            List<User> moderators =userRepository.getModerators();
+            if (moderators.isEmpty()) {
+                //?
+            }
+            post.setTitle(request.getTitle());
+            post.setModerator(moderators.get(0));
+            post.setModerationStatus(ModerationType.NEW);
+            post.setTime(postTime);
+            post.setViewCount(0);
+            tags.forEach(post::addTag);
+            postRepository.save(post);
+            response.setResult(true);
         }
         return response;
     }

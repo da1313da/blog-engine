@@ -6,7 +6,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class EmailData {
+public class EmailRequest {
     @JsonProperty("email")
     String email;
 }

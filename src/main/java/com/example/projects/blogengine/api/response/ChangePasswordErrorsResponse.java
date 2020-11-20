@@ -7,7 +7,8 @@ import lombok.Setter;
 @Getter
 @Setter
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class ChangePasswordResponse {
-    boolean result;
-    ChangePasswordErrorsResponse errors;
+public class ChangePasswordErrorsResponse {
+    String code;
+    String password;
+    String captcha;
 }

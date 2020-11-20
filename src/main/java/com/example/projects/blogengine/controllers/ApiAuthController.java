@@ -1,7 +1,7 @@
 package com.example.projects.blogengine.controllers;
 
-import com.example.projects.blogengine.api.request.ChangePasswordData;
-import com.example.projects.blogengine.api.request.EmailData;
+import com.example.projects.blogengine.api.request.ChangePasswordRequest;
+import com.example.projects.blogengine.api.request.EmailRequest;
 import com.example.projects.blogengine.api.request.LoginRequest;
 import com.example.projects.blogengine.api.request.RegistrationRequest;
 import com.example.projects.blogengine.api.response.*;
@@ -54,12 +54,12 @@ public class ApiAuthController {
     }
 
     @PostMapping("/api/auth/restore")
-    public BooleanResponse restorePassword(@RequestBody EmailData email){
+    public BooleanResponse restorePassword(@RequestBody EmailRequest email){
         return authService.getRestoreResult(email);
     }
 
     @PostMapping("/api/auth/password")
-    public ChangePasswordResponse changePassword(@RequestBody ChangePasswordData changePasswordData){
+    public ChangePasswordResponse changePassword(@RequestBody ChangePasswordRequest changePasswordData){
         return authService.getChangePasswordRequest(changePasswordData);
     }
 }

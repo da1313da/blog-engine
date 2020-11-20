@@ -1,5 +1,7 @@
 package com.example.projects.blogengine.controllers;
 
+import com.example.projects.blogengine.api.request.CreatePostRequest;
+import com.example.projects.blogengine.api.response.CreatePostResponse;
 import com.example.projects.blogengine.api.response.PostListResponse;
 import com.example.projects.blogengine.api.response.PostResponse;
 import com.example.projects.blogengine.security.UserDetailsImpl;
@@ -11,10 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 public class ApiPostController {
@@ -71,5 +70,11 @@ public class ApiPostController {
                                          @RequestParam String status,
                                          @AuthenticationPrincipal UserDetailsImpl user){
         return responseService.getUserPosts(offset, limit, status, user);
+    }
+
+    @PreAuthorize("hasAuthority('user:write')")
+    @PostMapping("/api/post")
+    public CreatePostResponse createPost(@RequestBody CreatePostRequest request, @AuthenticationPrincipal UserDetailsImpl user){
+        return responseService.createPost(request, user);
     }
 }

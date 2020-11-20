@@ -6,7 +6,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class ChangePasswordData {
+public class ChangePasswordRequest {
     String code;
     String password;
     String captcha;

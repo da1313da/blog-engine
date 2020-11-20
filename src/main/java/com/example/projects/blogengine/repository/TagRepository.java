@@ -16,4 +16,7 @@ public interface TagRepository extends JpaRepository<Tag, Integer> {
     @EntityGraph(attributePaths = {"posts.user"}, type = EntityGraph.EntityGraphType.LOAD)
     @Query("select t from Tag t where t.name like ?1%")
     List<Tag> getTagStartsWith(String string);
+
+    @Query("select t from Tag t where t.name in ?1")
+    List<Tag> getTagsByName(List<String> names);
 }
