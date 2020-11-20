@@ -68,6 +68,10 @@ public interface PostRepository extends JpaRepository<Post, Integer> {
     @Query("select p from Post p where p.id = ?1 and p.isActive = 1 and p.moderationStatus = 'ACCEPTED' and p.time < now()")
     Optional<Post> getPostById(int id);
 
+    @EntityGraph(attributePaths = {"user", "moderator", "tags"}, type = EntityGraph.EntityGraphType.LOAD)
+    @Query("select p from Post p where p.id = ?1")
+    Optional<Post> getPostByIdPreloadTags(int id);
+
     @Query("select p from Post p")
     Stream<Post> getPostsStream();
 

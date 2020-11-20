@@ -209,7 +209,7 @@ public class PostResponseService {
             }
             post.setIsActive((byte) request.getActive());
             post.setText(request.getText());
-            User actualUser = userRepository.findById(user.getUser().getId()).orElseThrow(() -> new UsernameNotFoundException("!"));
+            User actualUser = userRepository.findById(user.getUser().getId()).orElseThrow(() -> new UsernameNotFoundException(user.getUser().getEmail() + " not found"));
             post.setUser(actualUser);
             //todo how to select moderator ?
             List<User> moderators =userRepository.getModerators();
@@ -221,6 +221,52 @@ public class PostResponseService {
             post.setModerationStatus(ModerationType.NEW);
             post.setTime(postTime);
             post.setViewCount(0);
+            tags.forEach(post::addTag);
+            postRepository.save(post);
+            response.setResult(true);
+        }
+        return response;
+    }
+
+    public CreatePostResponse updatePost(int id, CreatePostRequest request, UserDetailsImpl user) {
+        Optional<Post> optionalPost = postRepository.getPostByIdPreloadTags(id);
+        if (optionalPost.isEmpty()){
+            return null;
+        }
+        CreatePostResponse response = new CreatePostResponse();
+        CreatePostErrorsResponse errors = new CreatePostErrorsResponse();
+        boolean isError = false;
+        if (request.getTitle() == null) {
+            errors.setTitle("Заголовок не установлен");
+            isError = true;
+        } else if(request.getText() == null){
+            errors.setText("Текст не установлен");
+            isError = true;
+        } else if (request.getTitle().length() <= 3){
+            errors.setTitle("Заголовок публикации слишком короткий");
+            isError = true;
+        } else if (request.getText().length() <= 50){
+            errors.setText("Текст публикации слишком короткий");
+            isError = true;
+        }
+        List<Tag> tags = tagRepository.getTagsByName(request.getTags());
+        if (tags.isEmpty()) isError = true;
+        if (isError){
+            response.setErrors(errors);
+        } else {
+            Post post = optionalPost.get();
+            ZonedDateTime postTime = ZonedDateTime.of(LocalDateTime.ofEpochSecond(request.getTimestamp(), 0, ZoneOffset.UTC), ZoneId.of("UTC"));
+            if (postTime.compareTo(ZonedDateTime.now(ZoneId.of("UTC"))) < 0) {
+                postTime = ZonedDateTime.now(ZoneId.of("UTC"));
+            }
+            post.setIsActive((byte) request.getActive());
+            post.setText(request.getText());
+            if (post.getUser().getId().equals(user.getUser().getId())){
+                post.setModerationStatus(ModerationType.NEW);
+            }
+            post.setTitle(request.getTitle());
+            post.setTime(postTime);
+            post.getTags().stream().filter(tag -> !tags.contains(tag)).forEach(post::removeTag);
             tags.forEach(post::addTag);
             postRepository.save(post);
             response.setResult(true);

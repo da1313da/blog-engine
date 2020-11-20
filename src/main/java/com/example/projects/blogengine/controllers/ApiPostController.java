@@ -77,4 +77,12 @@ public class ApiPostController {
     public CreatePostResponse createPost(@RequestBody CreatePostRequest request, @AuthenticationPrincipal UserDetailsImpl user){
         return responseService.createPost(request, user);
     }
+
+    @PreAuthorize("hasAuthority('user:write')")
+    @PutMapping("api/post/{id}")
+    public CreatePostResponse updatePost(@PathVariable int id,
+                                                   @RequestBody CreatePostRequest request,
+                                                   @AuthenticationPrincipal UserDetailsImpl user){
+        return responseService.updatePost(id, request, user);
+    }
 }
