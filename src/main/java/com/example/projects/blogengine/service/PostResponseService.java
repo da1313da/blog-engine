@@ -1,8 +1,13 @@
 package com.example.projects.blogengine.service;
 
+import com.example.projects.blogengine.api.request.CommentRequest;
 import com.example.projects.blogengine.api.request.CreatePostRequest;
 import com.example.projects.blogengine.api.response.*;
+import com.example.projects.blogengine.exception.CommentNotFoundException;
+import com.example.projects.blogengine.exception.PostNotFountException;
+import com.example.projects.blogengine.exception.UserNotFoundException;
 import com.example.projects.blogengine.model.*;
+import com.example.projects.blogengine.repository.CommentRepository;
 import com.example.projects.blogengine.repository.PostRepository;
 import com.example.projects.blogengine.repository.TagRepository;
 import com.example.projects.blogengine.repository.UserRepository;
@@ -24,25 +29,21 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 
 @Service
 public class PostResponseService {
 
     private final Logger logger = LoggerFactory.getLogger(PostResponseService.class);
-
     @Autowired
     private PostRepository postRepository;
-
     @Autowired
     private TagRepository tagRepository;
-
     @Autowired
     private UserRepository userRepository;
-
+    @Autowired
+    private CommentRepository commentRepository;
     @Autowired
     private ModelMapper mapper;
 
@@ -271,6 +272,34 @@ public class PostResponseService {
             postRepository.save(post);
             response.setResult(true);
         }
+        return response;
+    }
+
+    public Object addComment(CommentRequest request, UserDetailsImpl user) {
+        Post post = postRepository.findById(request.getPostId()).orElseThrow(PostNotFountException::new);
+        PostComment postComment = new PostComment();
+        if (!request.getParenId().equals("")){
+            //comment on comment
+            int parentId = Integer.parseInt(request.getParenId());
+            PostComment parentComment = commentRepository.findById(parentId).orElseThrow(CommentNotFoundException::new);
+            postComment.setParent(parentComment);
+        }
+        //comment on post
+        if (request.getText() == null || request.getText().length() < 30){
+            ErrorsResponse response = new ErrorsResponse();
+            response.setResult(false);
+            Map<String, String> errors = new HashMap<>();
+            errors.put("text", "Текст комментария не задан или слишком короткий");
+            response.setErrors(errors);
+            return response;
+        }
+        User actualUser = userRepository.findById(user.getUser().getId()).orElseThrow(UserNotFoundException::new);
+        postComment.setPost(post);
+        postComment.setText(request.getText());
+        postComment.setUser(actualUser);
+        postComment = commentRepository.save(postComment);
+        Map<String, Integer> response = new HashMap<>();
+        response.put("id", postComment.getId());
         return response;
     }
 }

@@ -6,6 +6,7 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 import javax.persistence.*;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.HashSet;
 import java.util.Set;
@@ -41,4 +42,9 @@ public class PostComment {
     @ToString.Exclude
     @OneToMany(mappedBy = "parent")
     private Set<PostComment> comments = new HashSet<>();
+
+    @PrePersist
+    private void prePersist(){
+        time = ZonedDateTime.now(ZoneId.of("UTC"));
+    }
 }

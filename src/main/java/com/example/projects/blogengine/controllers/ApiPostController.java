@@ -1,5 +1,6 @@
 package com.example.projects.blogengine.controllers;
 
+import com.example.projects.blogengine.api.request.CommentRequest;
 import com.example.projects.blogengine.api.request.CreatePostRequest;
 import com.example.projects.blogengine.api.response.CreatePostResponse;
 import com.example.projects.blogengine.api.response.PostListResponse;
@@ -84,5 +85,11 @@ public class ApiPostController {
                                                    @RequestBody CreatePostRequest request,
                                                    @AuthenticationPrincipal UserDetailsImpl user){
         return responseService.updatePost(id, request, user);
+    }
+
+    @PreAuthorize("hasAuthority('user:write')")
+    @PostMapping("/api/comment")
+    public Object addComment(@RequestBody CommentRequest request, @AuthenticationPrincipal UserDetailsImpl user){
+        return responseService.addComment(request, user);
     }
 }

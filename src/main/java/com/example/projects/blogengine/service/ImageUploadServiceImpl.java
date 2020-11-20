@@ -1,6 +1,6 @@
 package com.example.projects.blogengine.service;
 
-import com.example.projects.blogengine.api.response.AddImageErrorsResponse;
+import com.example.projects.blogengine.api.response.ErrorsResponse;
 import com.example.projects.blogengine.model.User;
 import com.example.projects.blogengine.repository.UserRepository;
 import com.example.projects.blogengine.security.UserDetailsImpl;
@@ -33,7 +33,7 @@ public class ImageUploadServiceImpl implements ImageUploadService {
 
     @Override
     public Object upload(UserDetailsImpl user, MultipartFile file) {
-        AddImageErrorsResponse response = new AddImageErrorsResponse();
+        ErrorsResponse response = new ErrorsResponse();
         Map<String, String> errors = new HashMap<>();
         User actualUser = userRepository.findById(user.getUser().getId()).orElseThrow(() -> new UsernameNotFoundException(user.getUser().getEmail() + " not found"));
         try(InputStream is = file.getInputStream()){
