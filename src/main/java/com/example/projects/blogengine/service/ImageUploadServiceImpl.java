@@ -1,7 +1,6 @@
 package com.example.projects.blogengine.service;
 
 import com.example.projects.blogengine.api.response.ErrorsResponse;
-import com.example.projects.blogengine.model.User;
 import com.example.projects.blogengine.repository.UserRepository;
 import com.example.projects.blogengine.security.UserDetailsImpl;
 import com.example.projects.blogengine.service.interfaces.ImageUploadService;
@@ -10,7 +9,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -35,7 +33,6 @@ public class ImageUploadServiceImpl implements ImageUploadService {
     public Object upload(UserDetailsImpl user, MultipartFile file) {
         ErrorsResponse response = new ErrorsResponse();
         Map<String, String> errors = new HashMap<>();
-        User actualUser = userRepository.findById(user.getUser().getId()).orElseThrow(() -> new UsernameNotFoundException(user.getUser().getEmail() + " not found"));
         try(InputStream is = file.getInputStream()){
             Path uploadFolder = Paths.get(uploadFolderName);
             if (!Files.exists(uploadFolder)) {
@@ -54,9 +51,6 @@ public class ImageUploadServiceImpl implements ImageUploadService {
                         randomDir.resolve(Paths.get(TokenGenerator.getToken(5) + ".jpg")) :
                         randomDir.resolve(Paths.get(TokenGenerator.getToken(5) + ".png"));
                 Files.copy(is, fullPath);
-                String photoPath = fullPath.toString();
-                actualUser.setPhoto(photoPath);
-                userRepository.save(actualUser);
                 return fullPath.toString();
             } else {
                 response.setResult(false);

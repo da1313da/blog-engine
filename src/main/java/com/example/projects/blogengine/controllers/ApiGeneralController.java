@@ -1,6 +1,8 @@
 package com.example.projects.blogengine.controllers;
 
+import com.example.projects.blogengine.api.request.EditProfileRequest;
 import com.example.projects.blogengine.api.response.CalendarResponse;
+import com.example.projects.blogengine.api.response.ErrorsResponse;
 import com.example.projects.blogengine.api.response.GeneralInfoResponse;
 import com.example.projects.blogengine.api.response.TagsListResponse;
 import com.example.projects.blogengine.model.GlobalSettings;
@@ -8,6 +10,7 @@ import com.example.projects.blogengine.repository.GlobalSettingsRepository;
 import com.example.projects.blogengine.security.UserDetailsImpl;
 import com.example.projects.blogengine.service.GeneralResponseService;
 import com.example.projects.blogengine.service.interfaces.CalendarService;
+import com.example.projects.blogengine.service.interfaces.EditProfileService;
 import com.example.projects.blogengine.service.interfaces.ImageUploadService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -15,10 +18,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.ZoneId;
@@ -32,15 +32,15 @@ public class ApiGeneralController {
 
     @Autowired
     private GeneralInfoResponse generalInfo;
-
     @Autowired
     private GlobalSettingsRepository globalSettingsRepository;
-
     @Autowired
     private GeneralResponseService generalResponseService;
-
     @Autowired
     private ImageUploadService imageUploadService;
+    @Autowired
+    private EditProfileService editProfileService;
+
 
     @Autowired
     //@Qualifier("calendarServiceJavaSide")
@@ -77,5 +77,12 @@ public class ApiGeneralController {
     @PostMapping(value = "/api/image", consumes = {"multipart/form-data"})
     public ResponseEntity<Object> addImage(@RequestParam("image") MultipartFile file, @AuthenticationPrincipal UserDetailsImpl user){
         return ResponseEntity.ok(imageUploadService.upload(user, file));
+    }
+
+    @PreAuthorize("hasAuthority('user:write')")
+    @PostMapping(value = "/api/profile/my", consumes = {"multipart/form-data", "application/json"})
+    public ErrorsResponse editProfile(@RequestBody EditProfileRequest request,
+                                      @AuthenticationPrincipal UserDetailsImpl user){
+        return editProfileService.edit(request, user);
     }
 }
