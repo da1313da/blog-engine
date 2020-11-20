@@ -31,6 +31,12 @@ spring:
   jackson:
     serialization:
       fail-on-empty-beans: false
+  servlet:
+    multipart:
+      enabled: true
+      location: upload
+      max-file-size: 200KB
+      max-request-size: 200KB
 GeneralInfo:
   title: DevPub
   subtitle: Рассказы разработчиков
@@ -38,6 +44,8 @@ GeneralInfo:
   email: mail@mail.ru
   copyright: Дмитрий Сергеев
   copyrightFrom: 2005
+
+uploadLocation: upload
 
 logging.level.org.hibernate.SQL: DEBUG
 logging.level.org.hibernate.type.descriptor.sql.BasicBinder: TRACE
