@@ -3,6 +3,7 @@ package com.example.projects.blogengine.model;
 import lombok.Data;
 
 import javax.persistence.*;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 
 @Data
@@ -26,4 +27,9 @@ public class PostVote {
 
     @Column(nullable = false)
     private Byte value;
+
+    @PrePersist
+    private void prePersis(){
+        time = ZonedDateTime.now(ZoneId.of("UTC"));
+    }
 }

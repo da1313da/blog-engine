@@ -2,6 +2,7 @@ package com.example.projects.blogengine.controllers;
 
 import com.example.projects.blogengine.api.request.CommentRequest;
 import com.example.projects.blogengine.api.request.CreatePostRequest;
+import com.example.projects.blogengine.api.request.LikeRequest;
 import com.example.projects.blogengine.api.request.ModerationRequest;
 import com.example.projects.blogengine.api.response.CreatePostResponse;
 import com.example.projects.blogengine.api.response.GenericResponse;
@@ -100,5 +101,17 @@ public class ApiPostController {
     public GenericResponse moderatePost(@RequestBody ModerationRequest request,
                                         @AuthenticationPrincipal UserDetailsImpl userDetails){
         return responseService.moderatePost(request, userDetails);
+    }
+
+    @PreAuthorize("hasAuthority('user:write')")
+    @PostMapping("/api/post/like")
+    public GenericResponse addLike(@RequestBody LikeRequest request, @AuthenticationPrincipal UserDetailsImpl userDetails){
+        return responseService.addLike(request, userDetails, true);
+    }
+
+    @PreAuthorize("hasAuthority('user:write')")
+    @PostMapping("/api/post/dislike")
+    public GenericResponse addDislike(@RequestBody LikeRequest request, @AuthenticationPrincipal UserDetailsImpl userDetails){
+        return responseService.addLike(request, userDetails, false);
     }
 }

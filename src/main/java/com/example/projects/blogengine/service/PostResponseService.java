@@ -2,16 +2,14 @@ package com.example.projects.blogengine.service;
 
 import com.example.projects.blogengine.api.request.CommentRequest;
 import com.example.projects.blogengine.api.request.CreatePostRequest;
+import com.example.projects.blogengine.api.request.LikeRequest;
 import com.example.projects.blogengine.api.request.ModerationRequest;
 import com.example.projects.blogengine.api.response.*;
 import com.example.projects.blogengine.exception.CommentNotFoundException;
 import com.example.projects.blogengine.exception.PostNotFountException;
 import com.example.projects.blogengine.exception.UserNotFoundException;
 import com.example.projects.blogengine.model.*;
-import com.example.projects.blogengine.repository.CommentRepository;
-import com.example.projects.blogengine.repository.PostRepository;
-import com.example.projects.blogengine.repository.TagRepository;
-import com.example.projects.blogengine.repository.UserRepository;
+import com.example.projects.blogengine.repository.*;
 import com.example.projects.blogengine.security.UserDetailsImpl;
 import com.example.projects.blogengine.utility.PageRequestWithOffset;
 import org.jsoup.Jsoup;
@@ -47,6 +45,8 @@ public class PostResponseService {
     private CommentRepository commentRepository;
     @Autowired
     private ModelMapper mapper;
+    @Autowired
+    private VoteRepository voteRepository;
 
     public PostListResponse getPostList(int limit, int offset, String mode){
         //todo assert not null (offset)
@@ -312,6 +312,32 @@ public class PostResponseService {
         post.setModerationStatus(ModerationType.valueOf(request.getDecision().toUpperCase()));
         postRepository.save(post);
         response.setResult(true);
+        return response;
+    }
+
+    public GenericResponse addLike(LikeRequest request, UserDetailsImpl userDetails, boolean isLike) {
+        GenericResponse response = new GenericResponse();
+        byte sign = (byte) (isLike ? 1 : -1);
+        Optional<PostVote> vote = voteRepository.getUserVoteByPost(request.getPostId(), userDetails.getUser().getId());
+        if (vote.isEmpty()){
+            Post post = postRepository.findById(request.getPostId()).orElseThrow(PostNotFountException::new);
+            User user = userRepository.findById(userDetails.getUser().getId()).orElseThrow(UserNotFoundException::new);
+            PostVote newVote = new PostVote();
+            newVote.setValue(sign);
+            newVote.setPost(post);
+            newVote.setUser(user);
+            voteRepository.save(newVote);
+            response.setResult(true);
+        } else {
+            PostVote existingVote = vote.get();
+            if (existingVote.getValue() == -sign){
+                existingVote.setValue(sign);
+                voteRepository.save(existingVote);
+                response.setResult(true);
+            } else {
+                response.setResult(false);
+            }
+        }
         return response;
     }
 }
