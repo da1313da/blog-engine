@@ -9,7 +9,7 @@ import java.util.Map;
 @Getter
 @Setter
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class ErrorsResponse {
+public class GenericResponse {
     boolean result;
     Map<String, String> errors;
 }

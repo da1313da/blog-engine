@@ -2,8 +2,8 @@ package com.example.projects.blogengine.controllers;
 
 import com.example.projects.blogengine.api.request.EditProfileRequest;
 import com.example.projects.blogengine.api.response.CalendarResponse;
-import com.example.projects.blogengine.api.response.ErrorsResponse;
 import com.example.projects.blogengine.api.response.GeneralInfoResponse;
+import com.example.projects.blogengine.api.response.GenericResponse;
 import com.example.projects.blogengine.api.response.TagsListResponse;
 import com.example.projects.blogengine.model.GlobalSettings;
 import com.example.projects.blogengine.repository.GlobalSettingsRepository;
@@ -81,8 +81,8 @@ public class ApiGeneralController {
 
     @PreAuthorize("hasAuthority('user:write')")
     @PostMapping(value = "/api/profile/my", consumes = {"multipart/form-data", "application/json"})
-    public ErrorsResponse editProfile(@RequestBody EditProfileRequest request,
-                                      @AuthenticationPrincipal UserDetailsImpl user){
+    public GenericResponse editProfile(@RequestBody EditProfileRequest request,
+                                       @AuthenticationPrincipal UserDetailsImpl user){
         return editProfileService.edit(request, user);
     }
 }

@@ -2,6 +2,7 @@ package com.example.projects.blogengine.service;
 
 import com.example.projects.blogengine.api.request.CommentRequest;
 import com.example.projects.blogengine.api.request.CreatePostRequest;
+import com.example.projects.blogengine.api.request.ModerationRequest;
 import com.example.projects.blogengine.api.response.*;
 import com.example.projects.blogengine.exception.CommentNotFoundException;
 import com.example.projects.blogengine.exception.PostNotFountException;
@@ -286,7 +287,7 @@ public class PostResponseService {
         }
         //comment on post
         if (request.getText() == null || request.getText().length() < 30){
-            ErrorsResponse response = new ErrorsResponse();
+            GenericResponse response = new GenericResponse();
             response.setResult(false);
             Map<String, String> errors = new HashMap<>();
             errors.put("text", "Текст комментария не задан или слишком короткий");
@@ -300,6 +301,17 @@ public class PostResponseService {
         postComment = commentRepository.save(postComment);
         Map<String, Integer> response = new HashMap<>();
         response.put("id", postComment.getId());
+        return response;
+    }
+
+    public GenericResponse moderatePost(ModerationRequest request, UserDetailsImpl userDetails) {
+        Post post = postRepository.findById(request.getPostId()).orElseThrow(PostNotFountException::new);
+        User moderator = userRepository.findById(userDetails.getUser().getId()).orElseThrow(UserNotFoundException::new);
+        if (moderator.getIsModerator() != 1) throw new UserNotFoundException();
+        GenericResponse response = new GenericResponse();
+        post.setModerationStatus(ModerationType.valueOf(request.getDecision().toUpperCase()));
+        postRepository.save(post);
+        response.setResult(true);
         return response;
     }
 }

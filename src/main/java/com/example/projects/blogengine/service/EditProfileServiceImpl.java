@@ -1,13 +1,15 @@
 package com.example.projects.blogengine.service;
 
 import com.example.projects.blogengine.api.request.EditProfileRequest;
-import com.example.projects.blogengine.api.response.ErrorsResponse;
+import com.example.projects.blogengine.api.response.GenericResponse;
 import com.example.projects.blogengine.exception.UserNotFoundException;
 import com.example.projects.blogengine.model.User;
 import com.example.projects.blogengine.repository.UserRepository;
 import com.example.projects.blogengine.security.UserDetailsImpl;
 import com.example.projects.blogengine.service.interfaces.EditProfileService;
+import com.example.projects.blogengine.utility.ImageSizeConverter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -25,14 +27,15 @@ public class EditProfileServiceImpl implements EditProfileService {
 
     @Autowired
     private UserRepository userRepository;
-
     @Autowired
     private PasswordEncoder passwordEncoder;
+    @Value("${max-photo-size}")
+    private String maxPhotoSize;
 
     @Override
-    public ErrorsResponse edit(EditProfileRequest request, UserDetailsImpl userDetails) {
+    public GenericResponse edit(EditProfileRequest request, UserDetailsImpl userDetails) {
         User actualUser = userRepository.findById(userDetails.getUser().getId()).orElseThrow(UserNotFoundException::new);
-        ErrorsResponse response = new ErrorsResponse();
+        GenericResponse response = new GenericResponse();
         Map<String, String> errors = new HashMap<>();
         if (request.getName().matches("\\W")){
             errors.put("name", "Имя указанно неверно");
@@ -45,8 +48,9 @@ public class EditProfileServiceImpl implements EditProfileService {
             }
         }
         if (request.getPhoto() != null){
-            if (request.getPhoto().getSize() > 5 * 1024 * 1024){//props!
-                errors.put("photo", "Фото слишком большое, нужно не более 5 Мб");
+            long maxSize = ImageSizeConverter.getImageSize(maxPhotoSize);
+            if (request.getPhoto().getSize() > maxSize){
+                errors.put("photo", "Фото слишком большое, нужно не более " + maxPhotoSize);
             }
         }
         if (errors.size() > 0 ){

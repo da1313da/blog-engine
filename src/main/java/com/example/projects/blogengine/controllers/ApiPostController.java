@@ -2,7 +2,9 @@ package com.example.projects.blogengine.controllers;
 
 import com.example.projects.blogengine.api.request.CommentRequest;
 import com.example.projects.blogengine.api.request.CreatePostRequest;
+import com.example.projects.blogengine.api.request.ModerationRequest;
 import com.example.projects.blogengine.api.response.CreatePostResponse;
+import com.example.projects.blogengine.api.response.GenericResponse;
 import com.example.projects.blogengine.api.response.PostListResponse;
 import com.example.projects.blogengine.api.response.PostResponse;
 import com.example.projects.blogengine.security.UserDetailsImpl;
@@ -91,5 +93,12 @@ public class ApiPostController {
     @PostMapping("/api/comment")
     public Object addComment(@RequestBody CommentRequest request, @AuthenticationPrincipal UserDetailsImpl user){
         return responseService.addComment(request, user);
+    }
+
+    @PreAuthorize("hasAuthority('user:moderate')")
+    @PostMapping("/api/moderation")
+    public GenericResponse moderatePost(@RequestBody ModerationRequest request,
+                                        @AuthenticationPrincipal UserDetailsImpl userDetails){
+        return responseService.moderatePost(request, userDetails);
     }
 }
