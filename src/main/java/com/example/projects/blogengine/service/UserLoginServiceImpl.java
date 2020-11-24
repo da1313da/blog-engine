@@ -51,4 +51,16 @@ public class UserLoginServiceImpl implements UserLoginService {
         response.setUser(userLoginResponse);
         return response;
     }
+
+    @Override
+    public LoginResponse logout(UserDetailsImpl userDetails) {
+        LoginResponse response = new LoginResponse();
+        try{
+            SecurityContextHolder.getContext().getAuthentication().setAuthenticated(false);
+        }catch (Exception e){
+            return response;
+        }
+        response.setResult(true);
+        return response;
+    }
 }

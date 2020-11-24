@@ -5,6 +5,7 @@ import com.example.projects.blogengine.api.request.EmailRequest;
 import com.example.projects.blogengine.api.request.LoginRequest;
 import com.example.projects.blogengine.api.request.RegistrationRequest;
 import com.example.projects.blogengine.api.response.*;
+import com.example.projects.blogengine.security.UserDetailsImpl;
 import com.example.projects.blogengine.service.AuthService;
 import com.example.projects.blogengine.service.interfaces.AuthCheckService;
 import com.example.projects.blogengine.service.interfaces.UserLoginService;
@@ -12,6 +13,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -61,5 +64,11 @@ public class ApiAuthController {
     @PostMapping("/api/auth/password")
     public ChangePasswordResponse changePassword(@RequestBody ChangePasswordRequest changePasswordData){
         return authService.getChangePasswordRequest(changePasswordData);
+    }
+
+    @PreAuthorize("hasAuthority('user:write')")
+    @GetMapping("/api/auth/logout")
+    public LoginResponse logout(@AuthenticationPrincipal UserDetailsImpl userDetails){
+        return userLoginService.logout(userDetails);
     }
 }
