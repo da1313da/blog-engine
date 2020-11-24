@@ -25,6 +25,7 @@ import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 public class ApiGeneralController {
@@ -60,6 +61,16 @@ public class ApiGeneralController {
             responseBody.put(s.getCode(), s.getValue());
         }
         return new ResponseEntity<>(responseBody, HttpStatus.OK);
+    }
+
+    @PreAuthorize("hasAuthority('user:moderate')")
+    @PutMapping("/api/settings")
+    public ResponseEntity<?> getGlobalSettings(@RequestBody Map<String, Boolean> request){
+        request.forEach((s, b) -> {
+            Optional<GlobalSettings> param = globalSettingsRepository.getByCode(s);
+            param.ifPresent(globalSettings -> globalSettings.setValue(b ? "YES" : "NO"));
+        });
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @GetMapping("/api/tag")
