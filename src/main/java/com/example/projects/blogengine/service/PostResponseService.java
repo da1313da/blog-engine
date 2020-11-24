@@ -309,7 +309,7 @@ public class PostResponseService {
         User moderator = userRepository.findById(userDetails.getUser().getId()).orElseThrow(UserNotFoundException::new);
         if (moderator.getIsModerator() != 1) throw new UserNotFoundException();
         GenericResponse response = new GenericResponse();
-        post.setModerationStatus(ModerationType.valueOf(request.getDecision().toUpperCase()));
+        post.setModerationStatus(request.getDecision().equals("accept") ? ModerationType.ACCEPTED : ModerationType.DECLINED);
         postRepository.save(post);
         response.setResult(true);
         return response;
@@ -322,6 +322,10 @@ public class PostResponseService {
         if (vote.isEmpty()){
             Post post = postRepository.findById(request.getPostId()).orElseThrow(PostNotFountException::new);
             User user = userRepository.findById(userDetails.getUser().getId()).orElseThrow(UserNotFoundException::new);
+            if (post.getUser().getId().equals(user.getId())){
+                response.setResult(false);
+                return response;
+            }
             PostVote newVote = new PostVote();
             newVote.setValue(sign);
             newVote.setPost(post);

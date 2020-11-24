@@ -45,7 +45,7 @@ GeneralInfo:
   email: mail@mail.ru
   copyright: Дмитрий Сергеев
   copyrightFrom: 2005
-
+#upload location relative path
 uploadLocation: upload
 max-image-size: 1MB
 max-photo-size: 5MB

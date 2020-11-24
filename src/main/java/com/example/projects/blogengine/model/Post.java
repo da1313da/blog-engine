@@ -28,7 +28,7 @@ public class Post {
     private ModerationType moderationStatus;
 
     @ManyToOne(cascade = CascadeType.PERSIST)
-    @JoinColumn(name = "moderator_id", nullable = false)
+    @JoinColumn(name = "moderator_id")
     private User moderator;
 
     @ManyToOne(cascade = CascadeType.PERSIST)

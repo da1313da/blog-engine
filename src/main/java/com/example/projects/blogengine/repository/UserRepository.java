@@ -21,6 +21,9 @@ public interface UserRepository extends JpaRepository<User, Integer> {
 
     Optional<User> getUserByEmail(String email);
 
+    @Query("select u from User u where  u.id <> ?2 and u.email = ?1")
+    Optional<User> getUserByEmailNotEqual(String email, int userId);
+
     @Query("select u from User u where u.isModerator  = 1")
     List<User> getModerators();
 }

@@ -1,14 +1,13 @@
 package com.example.projects.blogengine.controllers;
 
 import com.example.projects.blogengine.api.request.EditProfileRequest;
-import com.example.projects.blogengine.api.response.CalendarResponse;
-import com.example.projects.blogengine.api.response.GeneralInfoResponse;
-import com.example.projects.blogengine.api.response.GenericResponse;
-import com.example.projects.blogengine.api.response.TagsListResponse;
+import com.example.projects.blogengine.api.response.*;
+import com.example.projects.blogengine.exception.SettingsNotFoundException;
 import com.example.projects.blogengine.model.GlobalSettings;
 import com.example.projects.blogengine.repository.GlobalSettingsRepository;
 import com.example.projects.blogengine.security.UserDetailsImpl;
 import com.example.projects.blogengine.service.GeneralResponseService;
+import com.example.projects.blogengine.service.interfaces.BlogStatisticService;
 import com.example.projects.blogengine.service.interfaces.CalendarService;
 import com.example.projects.blogengine.service.interfaces.EditProfileService;
 import com.example.projects.blogengine.service.interfaces.ImageUploadService;
@@ -29,7 +28,6 @@ import java.util.Map;
 
 @RestController
 public class ApiGeneralController {
-
     @Autowired
     private GeneralInfoResponse generalInfo;
     @Autowired
@@ -40,11 +38,13 @@ public class ApiGeneralController {
     private ImageUploadService imageUploadService;
     @Autowired
     private EditProfileService editProfileService;
-
-
     @Autowired
-    //@Qualifier("calendarServiceJavaSide")
-    @Qualifier("calendarServiceDbSide")
+    @Qualifier("blogStatisticServiceJavaSide")
+    //@Qualifier("blogStatisticServiceDbSide")
+    private BlogStatisticService statisticService;
+    @Autowired
+    @Qualifier("calendarServiceJavaSide")
+    //@Qualifier("calendarServiceDbSide")
     private CalendarService calendarService;
 
     @GetMapping("/api/init")
@@ -80,9 +80,38 @@ public class ApiGeneralController {
     }
 
     @PreAuthorize("hasAuthority('user:write')")
-    @PostMapping(value = "/api/profile/my", consumes = {"multipart/form-data", "application/json"})
-    public GenericResponse editProfile(@RequestBody EditProfileRequest request,
+    @PostMapping(value = "/api/profile/my", consumes = {"multipart/form-data"})
+    public GenericResponse editProfile1(@RequestParam("photo") MultipartFile photo,
+                                       @RequestParam String name,
+                                       @RequestParam String email,
+                                       @RequestParam int removePhoto,
+                                       @RequestParam(required = false) String password,
                                        @AuthenticationPrincipal UserDetailsImpl user){
-        return editProfileService.edit(request, user);
+        EditProfileRequest request = new EditProfileRequest(name, email, password, removePhoto);
+        return editProfileService.edit(photo, request, user);
+    }
+
+    @PreAuthorize("hasAuthority('user:write')")
+    @PostMapping(value = "/api/profile/my", consumes = {"application/json"})
+    public GenericResponse editProfile2(@RequestBody EditProfileRequest request,
+                                       @AuthenticationPrincipal UserDetailsImpl user){
+        return editProfileService.edit(null, request, user);
+    }
+
+    @PreAuthorize("hasAuthority('user:write')")
+    @GetMapping("/api/statistics/my")
+    public StatisticResponse getUserStatistic(@AuthenticationPrincipal UserDetailsImpl userDetails){
+        return statisticService.getUser(userDetails.getUser().getId());
+    }
+
+    @PreAuthorize("hasAuthority('user:write')")
+    @GetMapping("/api/statistics/all")
+    public ResponseEntity<StatisticResponse> getGlobalStatistic(@AuthenticationPrincipal UserDetailsImpl userDetails){
+        GlobalSettings settings = globalSettingsRepository.getByCode("STATISTICS_IS_PUBLIC").orElseThrow(SettingsNotFoundException::new);
+        if (settings.getValue().equals("NO") && userDetails.getUser().getIsModerator() != 1){
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        } else {
+            return ResponseEntity.ok(statisticService.getBlog());
+        }
     }
 }

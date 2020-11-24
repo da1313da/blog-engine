@@ -24,14 +24,16 @@ public class CalendarServiceJavaSide implements CalendarService {
         Stream<Post> postStream = postRepository.getPostsStream();
         Set<Integer> years = new HashSet<>();
         Map<String, Integer> postCount = new HashMap<>();
-        postStream.filter(post -> post.getTime().getYear() == year).forEach(post -> {
+        postStream.forEach(post -> {
             String key = DateTimeFormatter.ISO_LOCAL_DATE.format(post.getTime());
-            if (postCount.containsKey(key)){
-                postCount.put(key, postCount.get(key) + 1);
-            } else {
-                postCount.put(key, 1);
-            }
             years.add(post.getTime().getYear());
+            if (post.getTime().getYear() == year){
+                if (postCount.containsKey(key)){
+                    postCount.put(key, postCount.get(key) + 1);
+                } else {
+                    postCount.put(key, 1);
+                }
+            }
         });
         List<Integer> sortedYears = new ArrayList<>(years);
         sortedYears.sort(Integer::compareTo);

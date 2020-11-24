@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -33,13 +34,13 @@ public class EditProfileServiceImpl implements EditProfileService {
     private String maxPhotoSize;
 
     @Override
-    public GenericResponse edit(EditProfileRequest request, UserDetailsImpl userDetails) {
+    public GenericResponse edit(MultipartFile photo, EditProfileRequest request, UserDetailsImpl userDetails) {
         User actualUser = userRepository.findById(userDetails.getUser().getId()).orElseThrow(UserNotFoundException::new);
         GenericResponse response = new GenericResponse();
         Map<String, String> errors = new HashMap<>();
         if (request.getName().matches("\\W")){
             errors.put("name", "Имя указанно неверно");
-        } else if (userRepository.getUserByEmail(request.getEmail()).isPresent()){
+        } else if (userRepository.getUserByEmailNotEqual(request.getEmail(), userDetails.getUser().getId()).isPresent()){
             errors.put("email", "Этот e-mail уже зарегистрирован");
         }
         if (request.getPassword() != null){
@@ -47,9 +48,9 @@ public class EditProfileServiceImpl implements EditProfileService {
                 errors.put("password", "Пароль короче 6-ти символов");
             }
         }
-        if (request.getPhoto() != null){
+        if (photo != null){
             long maxSize = ImageSizeConverter.getImageSize(maxPhotoSize);
-            if (request.getPhoto().getSize() > maxSize){
+            if (photo.getSize() > maxSize){
                 errors.put("photo", "Фото слишком большое, нужно не более " + maxPhotoSize);
             }
         }
@@ -62,12 +63,12 @@ public class EditProfileServiceImpl implements EditProfileService {
             if (request.getPassword() != null){//double check :(
                 actualUser.setPassword(passwordEncoder.encode(request.getPassword()));
             }
-            if (request.getPhoto() != null){
+            if (photo != null){
                 //change photo
-                try(InputStream inputStream = request.getPhoto().getInputStream()){
-                    BufferedImage photo = ImageIO.read(inputStream);
+                try(InputStream inputStream = photo.getInputStream()){
+                    BufferedImage bufferPhoto = ImageIO.read(inputStream);
                     BufferedImage resizedPhoto = new BufferedImage(36, 36, BufferedImage.TYPE_INT_RGB);
-                    resizedPhoto.createGraphics().drawImage(photo, 0, 0, 36, 36, null);
+                    resizedPhoto.createGraphics().drawImage(bufferPhoto, 0, 0, 36, 36, null);
                     ByteArrayOutputStream buffer = new ByteArrayOutputStream();
                     ImageIO.write(resizedPhoto, "png", buffer);
                     byte[] byteArray = buffer.toByteArray();

@@ -42,7 +42,7 @@ public class ImageUploadServiceImpl implements ImageUploadService {
         try(InputStream is = file.getInputStream()){
             Path uploadFolder = Paths.get(uploadFolderName);
             if (!Files.exists(uploadFolder)) {
-                Files.createDirectory(uploadFolder);
+                Files.createDirectories(uploadFolder);
             }
             if (file.getContentType().equals("image/jpeg") || file.getContentType().equals("image/png")){//todo npe?
                 String subDirName = TokenGenerator.getToken(6);
