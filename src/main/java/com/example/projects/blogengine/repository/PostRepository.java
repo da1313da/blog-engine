@@ -19,9 +19,8 @@ public interface PostRepository extends JpaRepository<Post, Integer> {
 
     @EntityGraph(attributePaths = {"user", "votes.user", "comments.user"}, type = EntityGraph.EntityGraphType.LOAD)
     @Query("select p from Post p" +
-            " left join p.comments pc" +
             " where p.isActive = 1 and p.moderationStatus = 'ACCEPTED' and p.time < now()" +
-            " order by pc.size desc")
+            " order by size(p.comments) desc")
     List<Post> getPopularPosts(Pageable page);
 
     @EntityGraph(attributePaths = {"user", "votes.user", "comments.user"}, type = EntityGraph.EntityGraphType.LOAD)
@@ -36,7 +35,6 @@ public interface PostRepository extends JpaRepository<Post, Integer> {
             " where p.isActive = 1 and p.moderationStatus = 'ACCEPTED' and p.time < now()" +
             " order by p.time")
     List<Post> getEarlyPosts(Pageable page);
-
 
     @EntityGraph(attributePaths = {"user", "votes.user", "comments.user"}, type = EntityGraph.EntityGraphType.LOAD)
     @Query("select p from Post p" +
