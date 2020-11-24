@@ -6,6 +6,7 @@ import com.example.projects.blogengine.api.request.LikeRequest;
 import com.example.projects.blogengine.api.request.ModerationRequest;
 import com.example.projects.blogengine.api.response.*;
 import com.example.projects.blogengine.exception.CommentNotFoundException;
+import com.example.projects.blogengine.exception.GlobalSettingsNotFountException;
 import com.example.projects.blogengine.exception.PostNotFountException;
 import com.example.projects.blogengine.exception.UserNotFoundException;
 import com.example.projects.blogengine.model.*;
@@ -47,6 +48,8 @@ public class PostResponseService {
     private ModelMapper mapper;
     @Autowired
     private VoteRepository voteRepository;
+    @Autowired
+    private GlobalSettingsRepository globalSettingsRepository;
 
     public PostListResponse getPostList(int limit, int offset, String mode){
         //todo assert not null (offset)
@@ -205,25 +208,36 @@ public class PostResponseService {
         if (isError){
             response.setErrors(errors);
         } else {
+            Optional<GlobalSettings> param = globalSettingsRepository.getByCode("POST_PREMODERATION");
+            GlobalSettings postPreModeration;
+            if (param.isPresent()){
+                postPreModeration = param.get();
+            } else {
+                throw new GlobalSettingsNotFountException();
+            }
             ZonedDateTime postTime = ZonedDateTime.of(LocalDateTime.ofEpochSecond(request.getTimestamp(), 0, ZoneOffset.UTC), ZoneId.of("UTC"));
             if (postTime.compareTo(ZonedDateTime.now(ZoneId.of("UTC"))) < 0) {
                 postTime = ZonedDateTime.now(ZoneId.of("UTC"));
             }
+            post.setTime(postTime);
             post.setIsActive((byte) request.getActive());
             post.setText(request.getText());
             User actualUser = userRepository.findById(user.getUser().getId()).orElseThrow(() -> new UsernameNotFoundException(user.getUser().getEmail() + " not found"));
             post.setUser(actualUser);
-            //todo how to select moderator ?
-            List<User> moderators =userRepository.getModerators();
-            if (moderators.isEmpty()) {
-                //?
-            }
-            post.setTitle(request.getTitle());
-            post.setModerator(moderators.get(0));
-            post.setModerationStatus(ModerationType.NEW);
-            post.setTime(postTime);
             post.setViewCount(0);
+            post.setTitle(request.getTitle());
             tags.forEach(post::addTag);
+            //todo how to select moderator ?
+//            List<User> moderators = userRepository.getModerators();
+//            if (moderators.isEmpty()) {
+//                //?
+//            }
+//            post.setModerator(moderators.get(0));
+            if (postPreModeration.getValue().equals("YES")){
+                post.setModerationStatus(ModerationType.NEW);
+            } else {
+                post.setModerationStatus(ModerationType.ACCEPTED);
+            }
             postRepository.save(post);
             response.setResult(true);
         }
@@ -256,6 +270,13 @@ public class PostResponseService {
         if (isError){
             response.setErrors(errors);
         } else {
+            Optional<GlobalSettings> param = globalSettingsRepository.getByCode("POST_PREMODERATION");
+            GlobalSettings postPreModeration;
+            if (param.isPresent()){
+                postPreModeration = param.get();
+            } else {
+                throw new GlobalSettingsNotFountException();
+            }
             Post post = optionalPost.get();
             ZonedDateTime postTime = ZonedDateTime.of(LocalDateTime.ofEpochSecond(request.getTimestamp(), 0, ZoneOffset.UTC), ZoneId.of("UTC"));
             if (postTime.compareTo(ZonedDateTime.now(ZoneId.of("UTC"))) < 0) {
@@ -263,7 +284,7 @@ public class PostResponseService {
             }
             post.setIsActive((byte) request.getActive());
             post.setText(request.getText());
-            if (post.getUser().getId().equals(user.getUser().getId())){
+            if (postPreModeration.getValue().equals("YES") && post.getUser().getId().equals(user.getUser().getId())){
                 post.setModerationStatus(ModerationType.NEW);
             }
             post.setTitle(request.getTitle());
@@ -279,7 +300,7 @@ public class PostResponseService {
     public Object addComment(CommentRequest request, UserDetailsImpl user) {
         Post post = postRepository.findById(request.getPostId()).orElseThrow(PostNotFountException::new);
         PostComment postComment = new PostComment();
-        if (!request.getParenId().equals("")){
+        if (request.getParenId() != null && !request.getParenId().equals("")){
             //comment on comment
             int parentId = Integer.parseInt(request.getParenId());
             PostComment parentComment = commentRepository.findById(parentId).orElseThrow(CommentNotFoundException::new);

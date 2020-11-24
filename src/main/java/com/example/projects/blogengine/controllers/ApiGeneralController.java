@@ -56,9 +56,9 @@ public class ApiGeneralController {
     @GetMapping("/api/settings")
     public ResponseEntity<?> getGlobalSettings(){
         List<GlobalSettings> settings = (List<GlobalSettings>) globalSettingsRepository.findAll();
-        Map<String, String> responseBody = new HashMap<>();
+        Map<String, Object> responseBody = new HashMap<>();
         for (GlobalSettings s : settings) {
-            responseBody.put(s.getCode(), s.getValue());
+            responseBody.put(s.getCode(), s.getValue().equals("YES"));
         }
         return new ResponseEntity<>(responseBody, HttpStatus.OK);
     }

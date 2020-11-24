@@ -4,9 +4,12 @@ import com.example.projects.blogengine.api.request.ChangePasswordRequest;
 import com.example.projects.blogengine.api.request.EmailRequest;
 import com.example.projects.blogengine.api.request.RegistrationRequest;
 import com.example.projects.blogengine.api.response.*;
+import com.example.projects.blogengine.exception.GlobalSettingsNotFountException;
 import com.example.projects.blogengine.model.CaptchaCode;
+import com.example.projects.blogengine.model.GlobalSettings;
 import com.example.projects.blogengine.model.User;
 import com.example.projects.blogengine.repository.CaptchaRepository;
+import com.example.projects.blogengine.repository.GlobalSettingsRepository;
 import com.example.projects.blogengine.repository.UserRepository;
 import com.example.projects.blogengine.utility.TokenGenerator;
 import com.github.cage.GCage;
@@ -22,23 +25,22 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Base64;
+import java.util.Optional;
 
 @Service
 public class AuthService {
 
     private final Logger logger = LoggerFactory.getLogger(AuthService.class);
-
     @Autowired
     private UserRepository usersRepository;
-
     @Autowired
     private CaptchaRepository captchaRepository;
-
     @Autowired
     private PasswordEncoder passwordEncoder;
-
     @Autowired
     private SpringEmailService emailService;
+    @Autowired
+    private GlobalSettingsRepository globalSettingsRepository;
 
     @Transactional
     public CaptchaResponse getCaptchaResponse() {//todo move hardcoded values to props?
@@ -69,6 +71,15 @@ public class AuthService {
     }
 
     public RegistrationResponse getRegistrationResponse(RegistrationRequest registrationRequest) {
+        Optional<GlobalSettings> multiUserParam = globalSettingsRepository.getByCode("MULTIUSER_MODE");
+        if (multiUserParam.isPresent()){
+            GlobalSettings param = multiUserParam.get();
+            if (param.getValue().equals("NO")){
+                return null;
+            }
+        } else {
+            throw new GlobalSettingsNotFountException();
+        }
         CaptchaCode captcha = captchaRepository.getBySecretCode(registrationRequest.getCaptchaSecret()).orElseThrow(IllegalArgumentException::new);//todo new exe?
         RegistrationErrorsResponse errors = new RegistrationErrorsResponse();
         RegistrationResponse response = new RegistrationResponse();
@@ -113,7 +124,7 @@ public class AuthService {
             usersRepository.save(user);
             String authority = "http://localhost:8080";//todo move to props?
             String link = "/login/change-password/" + code;
-            //emailService.sendSimpleMessage(email.getEmail(), "Сброс пароля", "Для сброса пароля перейдите по ссылке " + authority + link);
+            emailService.sendSimpleMessage(email.getEmail(), "Сброс пароля", "Для сброса пароля перейдите по ссылке " + authority + link);
             response.setResult(true);
         } else {
             response.setResult(false);

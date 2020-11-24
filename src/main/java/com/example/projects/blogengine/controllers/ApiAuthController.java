@@ -47,8 +47,12 @@ public class ApiAuthController {
     }
 
     @PostMapping("/api/auth/register")
-    public RegistrationResponse registration(@RequestBody RegistrationRequest registrationData){
-        return authService.getRegistrationResponse(registrationData);
+    public ResponseEntity<RegistrationResponse> registration(@RequestBody RegistrationRequest registrationData){
+        RegistrationResponse response = authService.getRegistrationResponse(registrationData);
+        if (response == null){
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/api/auth/captcha")
