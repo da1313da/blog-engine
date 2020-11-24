@@ -44,6 +44,13 @@ public interface PostRepository extends JpaRepository<Post, Integer> {
             " order by p.time desc")
     List<Post> getRecentPosts(Pageable page);
 
+    @EntityGraph(attributePaths = {"user", "votes.user", "comments.user"}, type = EntityGraph.EntityGraphType.LOAD)
+    @Query("select p from Post p where p.text like %?1% and p.isActive = 1 and p.moderationStatus = 'ACCEPTED' and p.time < now()")
+    List<Post> getPostsByQuery(String query, Pageable pageable);
+
+    @Query("select count(p) from Post p where p.text like %?1% and p.isActive = 1 and p.moderationStatus = 'ACCEPTED' and p.time < now()")
+    int getPostCountByQuery(String query);
+
     @Query("select count(p) from Post p where p.isActive = 1 and p.moderationStatus = 'ACCEPTED' and p.time < now()")
     int getPostsCount();
 

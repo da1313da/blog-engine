@@ -48,6 +48,13 @@ public class ApiPostController {
         return responseService.getPostListByTag(limit, offset, tag);
     }
 
+    @GetMapping("api/post/search")
+    public PostListResponse getPostsByQuery(@RequestParam(name = "offset", required = false, defaultValue = "0") int offset,
+                                                 @RequestParam(name = "limit") int limit,
+                                                 @RequestParam(name = "query") String query){
+        return responseService.getPostsByQuery(limit, offset, query);
+    }
+
     @PreAuthorize("hasAuthority('user:moderate')")
     @GetMapping("api/post/moderation")
     public PostListResponse getModeratorPosts(@RequestParam(name = "offset", required = false, defaultValue = "0") int offset,

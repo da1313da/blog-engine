@@ -344,4 +344,12 @@ public class PostResponseService {
         }
         return response;
     }
+
+    public PostListResponse getPostsByQuery(int limit, int offset, String query) {
+        PageRequestWithOffset page = new PageRequestWithOffset(limit, offset, Sort.unsorted());
+        PostListResponse response = new PostListResponse();
+        response.setCount(postRepository.getPostCountByQuery(query));
+        response.setPosts(convertToPostResponse(postRepository.getPostsByQuery(query, page)));
+        return response;
+    }
 }
