@@ -2,20 +2,34 @@ package com.example.projects.blogengine.service;
 
 import com.example.projects.blogengine.api.request.ChangePasswordRequest;
 import com.example.projects.blogengine.api.request.EmailRequest;
+import com.example.projects.blogengine.api.request.LoginRequest;
 import com.example.projects.blogengine.api.request.RegistrationRequest;
-import com.example.projects.blogengine.api.response.*;
+import com.example.projects.blogengine.api.response.CaptchaResponse;
+import com.example.projects.blogengine.api.response.GenericResponse;
+import com.example.projects.blogengine.api.response.LoginResponse;
+import com.example.projects.blogengine.api.response.UserLoginResponse;
+import com.example.projects.blogengine.config.BlogProperties;
 import com.example.projects.blogengine.exception.GlobalSettingsNotFountException;
 import com.example.projects.blogengine.model.CaptchaCode;
 import com.example.projects.blogengine.model.GlobalSettings;
+import com.example.projects.blogengine.model.ModerationType;
 import com.example.projects.blogengine.model.User;
 import com.example.projects.blogengine.repository.CaptchaRepository;
 import com.example.projects.blogengine.repository.GlobalSettingsRepository;
+import com.example.projects.blogengine.repository.PostRepository;
 import com.example.projects.blogengine.repository.UserRepository;
+import com.example.projects.blogengine.security.UserDetailsImpl;
 import com.example.projects.blogengine.utility.TokenGenerator;
 import com.github.cage.GCage;
+import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,7 +38,10 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.security.Principal;
 import java.util.Base64;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -32,26 +49,43 @@ public class AuthService {
 
     private final Logger logger = LoggerFactory.getLogger(AuthService.class);
     @Autowired
-    private UserRepository usersRepository;
+    private UserRepository userRepository;
     @Autowired
     private CaptchaRepository captchaRepository;
+    @Autowired
+    private GlobalSettingsRepository globalSettingsRepository;
+    @Autowired
+    private PostRepository postRepository;
     @Autowired
     private PasswordEncoder passwordEncoder;
     @Autowired
     private SpringEmailService emailService;
     @Autowired
-    private GlobalSettingsRepository globalSettingsRepository;
+    private AuthenticationManager authenticationManager;
+    @Autowired
+    private ModelMapper modelMapper;
+    @Autowired
+    private BlogProperties properties;
 
     @Transactional
-    public CaptchaResponse getCaptchaResponse() {//todo move hardcoded values to props?
+    public CaptchaResponse getCaptchaResponse() {
         captchaRepository.deleteCaptchaCodes();
         GCage cage = new GCage();
         CaptchaResponse response = new CaptchaResponse();
-        String secret = TokenGenerator.getToken(20);
-        String code = TokenGenerator.getToken(5);
+        String secret = TokenGenerator.getToken(properties.getCaptcha().getSecretCodeLength());
+        String code = TokenGenerator.getToken(properties.getCaptcha().getDisplayCodeLength());
         BufferedImage baseImage = cage.drawImage(code);
-        BufferedImage sizedImage = new BufferedImage(100, 35, BufferedImage.TYPE_INT_RGB);
-        sizedImage.createGraphics().drawImage(baseImage, 0, 0, 100, 35, null);
+        BufferedImage sizedImage = new BufferedImage(
+                properties.getCaptcha().getCaptchaImageWidth(),
+                properties.getCaptcha().getCaptchaImageHeight(),
+                BufferedImage.TYPE_INT_RGB);
+        sizedImage.createGraphics().drawImage(
+                baseImage,
+                0,
+                0,
+                properties.getCaptcha().getCaptchaImageWidth(),
+                properties.getCaptcha().getCaptchaImageHeight(),
+                null);
         ByteArrayOutputStream buffer = new ByteArrayOutputStream();
         try {
             ImageIO.write(sizedImage, "png", buffer);
@@ -70,7 +104,7 @@ public class AuthService {
         return response;
     }
 
-    public RegistrationResponse getRegistrationResponse(RegistrationRequest registrationRequest) {
+    public GenericResponse getRegistrationResponse(RegistrationRequest request) {
         Optional<GlobalSettings> multiUserParam = globalSettingsRepository.getByCode("MULTIUSER_MODE");
         if (multiUserParam.isPresent()){
             GlobalSettings param = multiUserParam.get();
@@ -80,48 +114,43 @@ public class AuthService {
         } else {
             throw new GlobalSettingsNotFountException();
         }
-        CaptchaCode captcha = captchaRepository.getBySecretCode(registrationRequest.getCaptchaSecret()).orElseThrow(IllegalArgumentException::new);//todo new exe?
-        RegistrationErrorsResponse errors = new RegistrationErrorsResponse();
-        RegistrationResponse response = new RegistrationResponse();
-        boolean isErrorPresent = false;
-        if (usersRepository.getUserByEmail(registrationRequest.getEmail()).isPresent()){
-            errors.setEmail("Этот e-mail уже зарегистрирован");
-            isErrorPresent = true;
+        CaptchaCode captcha = captchaRepository.getBySecretCode(request.getCaptchaSecret()).orElseThrow(IllegalArgumentException::new);
+        Map<String, String> errors = new HashMap<>();
+        GenericResponse response = new GenericResponse();
+        if (userRepository.getUserByEmail(request.getEmail()).isPresent()){
+            errors.put("email", "Этот e-mail уже зарегистрирован");
         }
-        if(registrationRequest.getPassword().length() < 6){
-            errors.setPassword("Пароль короче 6-ти символов");
-            isErrorPresent = true;
+        if(request.getPassword().length() < properties.getAccount().getPasswordLength()){
+            errors.put("password", "Пароль короче 6-ти символов");
         }
-        if (!registrationRequest.getCaptcha().equals(captcha.getCode())){
-            errors.setCaptcha("Код с картинки введён неверно");
-            isErrorPresent = true;
+        if (!request.getCaptcha().equals(captcha.getCode())){
+            errors.put("captcha", "Код с картинки введён неверно");
         }
-        if (registrationRequest.getName().contains("?")){
-            //todo any name conditions?
-            isErrorPresent = true;
+        if (request.getName().matches("\\W")){
+            errors.put("name", "Имя указано неверно");
         }
-        if (isErrorPresent){
+        if (errors.size() > 0){
             response.setResult(false);
             response.setErrors(errors);
         } else {
             User user = new User();
-            user.setPassword(passwordEncoder.encode(registrationRequest.getPassword()));
-            user.setName(registrationRequest.getName());
-            user.setEmail(registrationRequest.getEmail());
-            user.setIsModerator((byte) 0);//todo
-            usersRepository.save(user);
+            user.setPassword(passwordEncoder.encode(request.getPassword()));
+            user.setName(request.getName());
+            user.setEmail(request.getEmail());
+            user.setIsModerator((byte) 0);
+            userRepository.save(user);
             response.setResult(true);
         }
         return response;
     }
 
-    public BooleanResponse getRestoreResult(EmailRequest email) {
-        User user = usersRepository.getUserByEmailExpl(email.getEmail());
-        BooleanResponse response = new BooleanResponse();
+    public GenericResponse getRestoreResult(EmailRequest email) {
+        User user = userRepository.getUserByEmailExpl(email.getEmail());
+        GenericResponse response = new GenericResponse();
         if (user != null){
-            String code = TokenGenerator.getToken(30);
+            String code = TokenGenerator.getToken(45);
             user.setCode(code);
-            usersRepository.save(user);
+            userRepository.save(user);
             String authority = "http://localhost:8080";//todo move to props?
             String link = "/login/change-password/" + code;
             emailService.sendSimpleMessage(email.getEmail(), "Сброс пароля", "Для сброса пароля перейдите по ссылке " + authority + link);
@@ -132,36 +161,81 @@ public class AuthService {
         return response;
     }
 
-    public ChangePasswordResponse getChangePasswordRequest(ChangePasswordRequest changePasswordData) {
-        User users = usersRepository.getByCode(changePasswordData.getCode());
-        ChangePasswordErrorsResponse errors = new ChangePasswordErrorsResponse();
-        ChangePasswordResponse response = new ChangePasswordResponse();
-        if (users != null){
-            CaptchaCode captchaCode = captchaRepository.getBySecretCode(changePasswordData.getCaptchaSecret()).orElseThrow(IllegalArgumentException::new);
-            boolean isErrorPresent = false;
-            if (!captchaCode.getCode().equals(changePasswordData.getCaptcha())){
-                errors.setCaptcha("Код с картинки введён неверно");
-                isErrorPresent = true;
+    public GenericResponse getChangePasswordRequest(ChangePasswordRequest request) {
+        User user = userRepository.getByCode(request.getCode());
+        Map<String, String> errors = new HashMap<>();
+        GenericResponse response = new GenericResponse();
+        if (user != null){
+            CaptchaCode captchaCode = captchaRepository.getBySecretCode(request.getCaptchaSecret()).orElseThrow(IllegalArgumentException::new);
+            if (!captchaCode.getCode().equals(request.getCaptcha())){
+                errors.put("captcha", "Код с картинки введён неверно");
             }
-            if (changePasswordData.getPassword().length() < 6){//todo hardcoded
-                errors.setPassword("Пароль короче 6-ти символов");
-                isErrorPresent = true;
+            if (request.getPassword().length() < 6){
+                errors.put("password", "Пароль короче 6-ти символов");
             }
-            if (isErrorPresent){
+            if (errors.size() > 0){
                 response.setErrors(errors);
                 response.setResult(false);
             } else {
-                users.setPassword(passwordEncoder.encode(changePasswordData.getPassword()));
-                usersRepository.save(users);
+                user.setPassword(passwordEncoder.encode(request.getPassword()));
+                userRepository.save(user);
                 response.setResult(true);
             }
         } else {
-            errors.setCode("Ссылка для восстановления пароля устарела.\n" +
-                    "\t\t\t\t<a href=\n" +
-                    "\t\t\t\t\\\"/auth/restore\\\">Запросить ссылку снова</a>");
+            errors.put("code", "Ссылка для восстановления пароля устарела.\n" +
+                    "<a href=\"/auth/restore\">Запросить ссылку снова</a>");
             response.setResult(false);
             response.setErrors(errors);
         }
+        return response;
+    }
+
+    public LoginResponse getLoginResponse(LoginRequest loginRequest) {
+        LoginResponse response = new LoginResponse();
+        Authentication auth;
+        try{
+            auth = authenticationManager
+                    .authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
+        }catch (Exception e){
+            response.setResult(false);
+            return response;
+        }
+        SecurityContextHolder.getContext().setAuthentication(auth);
+        response.setResult(true);
+        UserDetailsImpl details = (UserDetailsImpl) auth.getPrincipal();
+        User user = details.getUser();
+        UserLoginResponse userLoginResponse = modelMapper.map(user, UserLoginResponse.class);
+        userLoginResponse.setModeration(user.getIsModerator() == 1);
+        userLoginResponse.setModerationCount(user.getIsModerator() == 1? postRepository.getModeratedPostCount(user, ModerationType.NEW) : 0);
+        userLoginResponse.setSettings(user.getIsModerator() == 1);
+        response.setUser(userLoginResponse);
+        return response;
+    }
+
+    public LoginResponse logout(UserDetailsImpl userDetails) {
+        LoginResponse response = new LoginResponse();
+        try{
+            SecurityContextHolder.clearContext();
+        }catch (Exception e){
+            return response;
+        }
+        response.setResult(true);
+        return response;
+    }
+
+    public LoginResponse getUserStatus(Principal principal) {
+        LoginResponse response = new LoginResponse();
+        if (principal == null){
+            response.setResult(false);
+            return response;
+        }
+        response.setResult(true);
+        User user = userRepository.getUserByEmail(principal.getName()).orElseThrow(() -> new UsernameNotFoundException(principal.getName() + " not found"));
+        UserLoginResponse userLoginResponse = modelMapper.map(user, UserLoginResponse.class);
+        userLoginResponse.setModeration(user.getIsModerator() == 1);
+        userLoginResponse.setModerationCount(user.getIsModerator() == 1? postRepository.getModeratedPostCount(user, ModerationType.NEW) : 0);
+        userLoginResponse.setSettings(user.getIsModerator() == 1);
+        response.setUser(userLoginResponse);
         return response;
     }
 }

@@ -1,5 +1,6 @@
 package com.example.projects.blogengine.service;
 
+import com.example.projects.blogengine.config.BlogProperties;
 import com.example.projects.blogengine.service.interfaces.EmailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
@@ -11,11 +12,13 @@ public class SpringEmailService implements EmailService {
 
     @Autowired
     private JavaMailSender mailSender;
+    @Autowired
+    private BlogProperties blogProperties;
 
     @Override
     public void sendSimpleMessage(String to, String subject, String text) {
         SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom("noreply@blog.com");
+        message.setFrom(blogProperties.getEmailAddress());
         message.setTo(to);
         message.setSubject(subject);
         message.setText(text);

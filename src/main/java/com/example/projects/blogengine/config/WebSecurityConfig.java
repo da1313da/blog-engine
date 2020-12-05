@@ -30,10 +30,13 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             .authorizeRequests()
             .antMatchers(HttpMethod.GET, "/**").permitAll()
             .antMatchers(HttpMethod.POST, "/**").permitAll()
-            .anyRequest().authenticated()
+            .anyRequest()
+                .authenticated()
             .and()
-            .csrf().disable()
-            .formLogin().disable().httpBasic();
+            .csrf()
+                .disable()
+            .formLogin()
+                .disable();
     }
 
     @Bean

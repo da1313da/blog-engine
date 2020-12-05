@@ -4,11 +4,11 @@ import com.example.projects.blogengine.api.request.ChangePasswordRequest;
 import com.example.projects.blogengine.api.request.EmailRequest;
 import com.example.projects.blogengine.api.request.LoginRequest;
 import com.example.projects.blogengine.api.request.RegistrationRequest;
-import com.example.projects.blogengine.api.response.*;
+import com.example.projects.blogengine.api.response.CaptchaResponse;
+import com.example.projects.blogengine.api.response.GenericResponse;
+import com.example.projects.blogengine.api.response.LoginResponse;
 import com.example.projects.blogengine.security.UserDetailsImpl;
 import com.example.projects.blogengine.service.AuthService;
-import com.example.projects.blogengine.service.interfaces.AuthCheckService;
-import com.example.projects.blogengine.service.interfaces.UserLoginService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,25 +30,19 @@ public class ApiAuthController {
     @Autowired
     private AuthService authService;
 
-    @Autowired
-    private UserLoginService userLoginService;
-
-    @Autowired
-    private AuthCheckService authCheckService;
-
     @PostMapping(value = "/api/auth/login", consumes = {"application/json"})
     public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest loginRequest){
-        return ResponseEntity.ok(userLoginService.getLoginResponse(loginRequest));
+        return ResponseEntity.ok(authService.getLoginResponse(loginRequest));
     }
 
     @GetMapping("/api/auth/check")
     public LoginResponse statusChek(Principal principal){
-        return authCheckService.getUserStatus(principal);
+        return authService.getUserStatus(principal);
     }
 
     @PostMapping("/api/auth/register")
-    public ResponseEntity<RegistrationResponse> registration(@RequestBody RegistrationRequest registrationData){
-        RegistrationResponse response = authService.getRegistrationResponse(registrationData);
+    public ResponseEntity<GenericResponse> registration(@RequestBody RegistrationRequest registrationData){
+        GenericResponse response = authService.getRegistrationResponse(registrationData);
         if (response == null){
             return ResponseEntity.notFound().build();
         }
@@ -61,18 +55,18 @@ public class ApiAuthController {
     }
 
     @PostMapping("/api/auth/restore")
-    public BooleanResponse restorePassword(@RequestBody EmailRequest email){
+    public GenericResponse restorePassword(@RequestBody EmailRequest email){
         return authService.getRestoreResult(email);
     }
 
     @PostMapping("/api/auth/password")
-    public ChangePasswordResponse changePassword(@RequestBody ChangePasswordRequest changePasswordData){
-        return authService.getChangePasswordRequest(changePasswordData);
+    public GenericResponse changePassword(@RequestBody ChangePasswordRequest request){
+        return authService.getChangePasswordRequest(request);
     }
 
     @PreAuthorize("hasAuthority('user:write')")
     @GetMapping("/api/auth/logout")
     public LoginResponse logout(@AuthenticationPrincipal UserDetailsImpl userDetails){
-        return userLoginService.logout(userDetails);
+        return authService.logout(userDetails);
     }
 }

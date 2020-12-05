@@ -5,6 +5,7 @@ import com.example.projects.blogengine.api.request.CreatePostRequest;
 import com.example.projects.blogengine.api.request.LikeRequest;
 import com.example.projects.blogengine.api.request.ModerationRequest;
 import com.example.projects.blogengine.api.response.*;
+import com.example.projects.blogengine.config.BlogProperties;
 import com.example.projects.blogengine.exception.CommentNotFoundException;
 import com.example.projects.blogengine.exception.GlobalSettingsNotFountException;
 import com.example.projects.blogengine.exception.PostNotFountException;
@@ -30,6 +31,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -50,9 +52,10 @@ public class PostResponseService {
     private VoteRepository voteRepository;
     @Autowired
     private GlobalSettingsRepository globalSettingsRepository;
+    @Autowired
+    private BlogProperties blogProperties;
 
     public PostListResponse getPostList(int limit, int offset, String mode){
-        //todo assert not null (offset)
         List<Post> posts;
         PostListResponse response = new PostListResponse();
         Pageable page = new PageRequestWithOffset(limit, offset, Sort.unsorted());
@@ -185,29 +188,25 @@ public class PostResponseService {
         return response;
     }
 
-    public CreatePostResponse createPost(CreatePostRequest request, UserDetailsImpl user) {
-        Post post = new Post();
-        CreatePostResponse response = new CreatePostResponse();
-        CreatePostErrorsResponse errors = new CreatePostErrorsResponse();
-        boolean isError = false;
+    public GenericResponse createPost(CreatePostRequest request, UserDetailsImpl user) {
+        GenericResponse response = new GenericResponse();
+        Map<String, String> errors = new HashMap<>();
         if (request.getTitle() == null) {
-            errors.setTitle("Заголовок не установлен");
-            isError = true;
-        } else if(request.getText() == null){
-            errors.setText("Текст не установлен");
-            isError = true;
-        } else if (request.getTitle().length() <= 3){
-            errors.setTitle("Заголовок публикации слишком короткий");
-            isError = true;
-        } else if (request.getText().length() <= 50){
-            errors.setText("Текст публикации слишком короткий");
-            isError = true;
+            errors.put("title", "Заголовок не установлен");
         }
-        List<Tag> tags = tagRepository.getTagsByName(request.getTags());
-        if (tags.isEmpty()) isError = true;
-        if (isError){
+        if(request.getText() == null){
+            errors.put("text", "Текст не установлен");
+        }
+        if (request.getTitle().length() <= blogProperties.getPost().getMinTitleSize()){
+            errors.put("title", "Заголовок публикации слишком короткий");
+        }
+        if (request.getText().length() <= blogProperties.getPost().getMinTextSize()){
+            errors.put("text", "Текст публикации слишком короткий");
+        }
+        if (errors.size() > 0){
             response.setErrors(errors);
         } else {
+            Post post = new Post();
             Optional<GlobalSettings> param = globalSettingsRepository.getByCode("POST_PREMODERATION");
             GlobalSettings postPreModeration;
             if (param.isPresent()){
@@ -215,61 +214,65 @@ public class PostResponseService {
             } else {
                 throw new GlobalSettingsNotFountException();
             }
-            ZonedDateTime postTime = ZonedDateTime.of(LocalDateTime.ofEpochSecond(request.getTimestamp(), 0, ZoneOffset.UTC), ZoneId.of("UTC"));
-            if (postTime.compareTo(ZonedDateTime.now(ZoneId.of("UTC"))) < 0) {
-                postTime = ZonedDateTime.now(ZoneId.of("UTC"));
-            }
-            post.setTime(postTime);
-            post.setIsActive((byte) request.getActive());
-            post.setText(request.getText());
-            User actualUser = userRepository.findById(user.getUser().getId()).orElseThrow(() -> new UsernameNotFoundException(user.getUser().getEmail() + " not found"));
-            post.setUser(actualUser);
-            post.setViewCount(0);
-            post.setTitle(request.getTitle());
-            tags.forEach(post::addTag);
-            //todo how to select moderator ?
-//            List<User> moderators = userRepository.getModerators();
-//            if (moderators.isEmpty()) {
-//                //?
-//            }
-//            post.setModerator(moderators.get(0));
             if (postPreModeration.getValue().equals("YES")){
                 post.setModerationStatus(ModerationType.NEW);
             } else {
                 post.setModerationStatus(ModerationType.ACCEPTED);
             }
+            ZonedDateTime postTime = ZonedDateTime.of(LocalDateTime.ofEpochSecond(request.getTimestamp(), 0, ZoneOffset.UTC), ZoneId.of("UTC"));
+            if (postTime.compareTo(ZonedDateTime.now(ZoneId.of("UTC"))) < 0) {
+                postTime = ZonedDateTime.now(ZoneId.of("UTC"));
+            }
+            post.setTime(postTime);
+
+            post.setIsActive((byte) request.getActive());
+            post.setText(request.getText());
+            User actualUser = userRepository.findById(user.getUser().getId())
+                    .orElseThrow(() -> new UsernameNotFoundException(user.getUser().getEmail() + " not found"));
+            post.setUser(actualUser);
+            post.setViewCount(0);
+            post.setTitle(request.getTitle());
+
+            List<Tag> newTags = tagRepository.getTagsByName(request.getTags());
+            List<String> existingTagNames = newTags.stream().map(Tag::getName).collect(Collectors.toList());
+            for (String tagName : request.getTags()) {
+                if (!existingTagNames.contains(tagName)){
+                    Tag tag = new Tag();
+                    tag.setName(tagName.toUpperCase().trim());
+                    tagRepository.save(tag);
+                    newTags.add(tag);
+                }
+            }
+            newTags.forEach(post::addTag);
             postRepository.save(post);
             response.setResult(true);
         }
         return response;
     }
 
-    public CreatePostResponse updatePost(int id, CreatePostRequest request, UserDetailsImpl user) {
+    public GenericResponse updatePost(int id, CreatePostRequest request, UserDetailsImpl user) {
         Optional<Post> optionalPost = postRepository.getPostByIdPreloadTags(id);
         if (optionalPost.isEmpty()){
             return null;
         }
-        CreatePostResponse response = new CreatePostResponse();
-        CreatePostErrorsResponse errors = new CreatePostErrorsResponse();
-        boolean isError = false;
+        GenericResponse response = new GenericResponse();
+        Map<String, String> errors = new HashMap<>();
         if (request.getTitle() == null) {
-            errors.setTitle("Заголовок не установлен");
-            isError = true;
-        } else if(request.getText() == null){
-            errors.setText("Текст не установлен");
-            isError = true;
-        } else if (request.getTitle().length() <= 3){
-            errors.setTitle("Заголовок публикации слишком короткий");
-            isError = true;
-        } else if (request.getText().length() <= 50){
-            errors.setText("Текст публикации слишком короткий");
-            isError = true;
+            errors.put("title", "Заголовок не установлен");
         }
-        List<Tag> tags = tagRepository.getTagsByName(request.getTags());
-        if (tags.isEmpty()) isError = true;
-        if (isError){
+        if(request.getText() == null){
+            errors.put("text", "Текст не установлен");
+        }
+        if (request.getTitle().length() <= blogProperties.getPost().getMinTitleSize()){
+            errors.put("title", "Заголовок публикации слишком короткий");
+        }
+        if (request.getText().length() <= blogProperties.getPost().getMinTextSize()){
+            errors.put("text", "Текст публикации слишком короткий");
+        }
+        if (errors.size() > 0){
             response.setErrors(errors);
         } else {
+            Post post = optionalPost.get();
             Optional<GlobalSettings> param = globalSettingsRepository.getByCode("POST_PREMODERATION");
             GlobalSettings postPreModeration;
             if (param.isPresent()){
@@ -277,20 +280,29 @@ public class PostResponseService {
             } else {
                 throw new GlobalSettingsNotFountException();
             }
-            Post post = optionalPost.get();
+            if (postPreModeration.getValue().equals("YES") && post.getUser().getId().equals(user.getUser().getId())){
+                post.setModerationStatus(ModerationType.NEW);
+            }
             ZonedDateTime postTime = ZonedDateTime.of(LocalDateTime.ofEpochSecond(request.getTimestamp(), 0, ZoneOffset.UTC), ZoneId.of("UTC"));
             if (postTime.compareTo(ZonedDateTime.now(ZoneId.of("UTC"))) < 0) {
                 postTime = ZonedDateTime.now(ZoneId.of("UTC"));
             }
+            post.setTime(postTime);
             post.setIsActive((byte) request.getActive());
             post.setText(request.getText());
-            if (postPreModeration.getValue().equals("YES") && post.getUser().getId().equals(user.getUser().getId())){
-                post.setModerationStatus(ModerationType.NEW);
-            }
             post.setTitle(request.getTitle());
-            post.setTime(postTime);
-            post.getTags().stream().filter(tag -> !tags.contains(tag)).forEach(post::removeTag);
-            tags.forEach(post::addTag);
+            List<Tag> newTags = tagRepository.getTagsByName(request.getTags());
+            List<String> existingTagNames = newTags.stream().map(Tag::getName).collect(Collectors.toList());
+            for (String tagName : request.getTags()) {
+                if (!existingTagNames.contains(tagName)){
+                    Tag tag = new Tag();
+                    tag.setName(tagName.toUpperCase().trim());
+                    tagRepository.save(tag);
+                    newTags.add(tag);
+                }
+            }
+            post.getTags().stream().filter(tag -> !newTags.contains(tag)).forEach(post::removeTag);
+            newTags.stream().filter(tag -> !post.getTags().contains(tag)).forEach(post::addTag);
             postRepository.save(post);
             response.setResult(true);
         }
@@ -302,12 +314,12 @@ public class PostResponseService {
         PostComment postComment = new PostComment();
         if (request.getParenId() != null && !request.getParenId().equals("")){
             //comment on comment
-            int parentId = Integer.parseInt(request.getParenId());
+            int parentId = Integer.parseInt(request.getParenId());//todo parse exception!!
             PostComment parentComment = commentRepository.findById(parentId).orElseThrow(CommentNotFoundException::new);
             postComment.setParent(parentComment);
         }
         //comment on post
-        if (request.getText() == null || request.getText().length() < 30){
+        if (request.getText() == null || request.getText().length() < blogProperties.getPost().getMinCommentSize()){
             GenericResponse response = new GenericResponse();
             response.setResult(false);
             Map<String, String> errors = new HashMap<>();

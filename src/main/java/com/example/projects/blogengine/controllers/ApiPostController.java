@@ -4,7 +4,6 @@ import com.example.projects.blogengine.api.request.CommentRequest;
 import com.example.projects.blogengine.api.request.CreatePostRequest;
 import com.example.projects.blogengine.api.request.LikeRequest;
 import com.example.projects.blogengine.api.request.ModerationRequest;
-import com.example.projects.blogengine.api.response.CreatePostResponse;
 import com.example.projects.blogengine.api.response.GenericResponse;
 import com.example.projects.blogengine.api.response.PostListResponse;
 import com.example.projects.blogengine.api.response.PostResponse;
@@ -29,22 +28,23 @@ public class ApiPostController {
 
     @GetMapping("api/post")
     public PostListResponse getPostResponse(@RequestParam(name = "offset", required = false, defaultValue = "0") int offset,
-                                            @RequestParam(name = "limit") int limit,
-                                            @RequestParam(name = "mode") String mode){
+                                            @RequestParam(name = "limit", required = false, defaultValue = "1") int limit,
+                                            @RequestParam(name = "mode", required = false, defaultValue = "recent") String mode){
         return responseService.getPostList(limit, offset, mode);
     }
 
     @GetMapping("api/post/byDate")
     public PostListResponse getPostResponseByDate(@RequestParam(name = "offset", required = false, defaultValue = "0") int offset,
-                                            @RequestParam(name = "limit") int limit,
-                                            @RequestParam(name = "date") String date){
+                                            @RequestParam(name = "limit", required = false, defaultValue = "1") int limit,
+                                            @RequestParam(name = "date", required = false, defaultValue = "#{T(java.time.ZonedDateTime).now(T(java.time.ZoneId).of(\"UTC\")).format(T(java.time.format.DateTimeFormatter).ofPattern(\"yyyy-MM-dd\"))}") String date){
+        System.out.println(date);
         return responseService.getPostListByDate(limit, offset, date);
     }
 
     @GetMapping("api/post/byTag")
     public PostListResponse getPostResponseByTag(@RequestParam(name = "offset", required = false, defaultValue = "0") int offset,
-                                                  @RequestParam(name = "limit") int limit,
-                                                  @RequestParam(name = "tag") String tag){
+                                                 @RequestParam(name = "limit", required = false, defaultValue = "1") int limit,
+                                                 @RequestParam(name = "tag") String tag){
         return responseService.getPostListByTag(limit, offset, tag);
     }
 
@@ -85,13 +85,13 @@ public class ApiPostController {
 
     @PreAuthorize("hasAuthority('user:write')")
     @PostMapping("/api/post")
-    public CreatePostResponse createPost(@RequestBody CreatePostRequest request, @AuthenticationPrincipal UserDetailsImpl user){
+    public GenericResponse createPost(@RequestBody CreatePostRequest request, @AuthenticationPrincipal UserDetailsImpl user){
         return responseService.createPost(request, user);
     }
 
     @PreAuthorize("hasAuthority('user:write')")
     @PutMapping("api/post/{id}")
-    public CreatePostResponse updatePost(@PathVariable int id,
+    public GenericResponse updatePost(@PathVariable int id,
                                                    @RequestBody CreatePostRequest request,
                                                    @AuthenticationPrincipal UserDetailsImpl user){
         return responseService.updatePost(id, request, user);

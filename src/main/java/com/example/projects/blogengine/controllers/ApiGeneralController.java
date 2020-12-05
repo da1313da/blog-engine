@@ -41,11 +41,9 @@ public class ApiGeneralController {
     private EditProfileService editProfileService;
     @Autowired
     @Qualifier("blogStatisticServiceJavaSide")
-    //@Qualifier("blogStatisticServiceDbSide")
     private BlogStatisticService statisticService;
     @Autowired
     @Qualifier("calendarServiceJavaSide")
-    //@Qualifier("calendarServiceDbSide")
     private CalendarService calendarService;
 
     @GetMapping("/api/init")
@@ -68,7 +66,10 @@ public class ApiGeneralController {
     public ResponseEntity<?> getGlobalSettings(@RequestBody Map<String, Boolean> request){
         request.forEach((s, b) -> {
             Optional<GlobalSettings> param = globalSettingsRepository.getByCode(s);
-            param.ifPresent(globalSettings -> globalSettings.setValue(b ? "YES" : "NO"));
+            param.ifPresent(globalSettings -> {
+                globalSettings.setValue(b ? "YES" : "NO");
+                globalSettingsRepository.save(globalSettings);
+            });
         });
         return new ResponseEntity<>(HttpStatus.OK);
     }
