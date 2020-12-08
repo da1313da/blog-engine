@@ -1,19 +1,24 @@
 package com.example.projects.blogengine.config;
 
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 public class AdditionalResourceConfiguration implements WebMvcConfigurer {
-    @Value("${uploadLocation}")
-    private String uploadLocation;
+
+    @Autowired
+    private BlogProperties properties;
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        registry.addResourceHandler("/" + uploadLocation + "/**").addResourceLocations("file:" + uploadLocation + "/");
-        registry.addResourceHandler("/edit/" + uploadLocation + "/**").addResourceLocations("file:" + uploadLocation + "/");//todo path resolution
-        registry.addResourceHandler("/post/" + uploadLocation + "/**").addResourceLocations("file:" + uploadLocation + "/");
+        String uploadLocation = properties.getUpload().getLocation();
+        registry.addResourceHandler("/" + uploadLocation + "/**")
+                .addResourceLocations("file:" + uploadLocation + "/");
+        registry.addResourceHandler("/edit/" + uploadLocation + "/**")
+                .addResourceLocations("file:" + uploadLocation + "/");
+        registry.addResourceHandler("/post/" + uploadLocation + "/**")
+                .addResourceLocations("file:" + uploadLocation + "/");
     }
 }

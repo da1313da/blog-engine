@@ -2,17 +2,9 @@ package com.example.projects.blogengine.controllers;
 
 import com.example.projects.blogengine.api.request.EditProfileRequest;
 import com.example.projects.blogengine.api.response.*;
-import com.example.projects.blogengine.exception.SettingsNotFoundException;
-import com.example.projects.blogengine.model.GlobalSettings;
-import com.example.projects.blogengine.repository.GlobalSettingsRepository;
 import com.example.projects.blogengine.security.UserDetailsImpl;
-import com.example.projects.blogengine.service.GeneralResponseService;
-import com.example.projects.blogengine.service.interfaces.BlogStatisticService;
-import com.example.projects.blogengine.service.interfaces.CalendarService;
-import com.example.projects.blogengine.service.interfaces.EditProfileService;
-import com.example.projects.blogengine.service.interfaces.ImageUploadService;
+import com.example.projects.blogengine.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -22,67 +14,52 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @RestController
 public class ApiGeneralController {
     @Autowired
-    private GeneralInfoResponse generalInfo;
+    private GlobalSettingsService globalSettingsService;
     @Autowired
-    private GlobalSettingsRepository globalSettingsRepository;
-    @Autowired
-    private GeneralResponseService generalResponseService;
+    private TagService generalResponseService;
     @Autowired
     private ImageUploadService imageUploadService;
     @Autowired
     private EditProfileService editProfileService;
     @Autowired
-    @Qualifier("blogStatisticServiceJavaSide")
     private BlogStatisticService statisticService;
     @Autowired
-    @Qualifier("calendarServiceJavaSide")
     private CalendarService calendarService;
+    @Autowired
+    private GlobalInfoService globalInfoService;
 
     @GetMapping("/api/init")
     public GeneralInfoResponse getGeneralInfo(){
-        return generalInfo;
+        return globalInfoService.getGlobalInfo();
     }
 
     @GetMapping("/api/settings")
     public ResponseEntity<?> getGlobalSettings(){
-        List<GlobalSettings> settings = (List<GlobalSettings>) globalSettingsRepository.findAll();
-        Map<String, Object> responseBody = new HashMap<>();
-        for (GlobalSettings s : settings) {
-            responseBody.put(s.getCode(), s.getValue().equals("YES"));
-        }
-        return new ResponseEntity<>(responseBody, HttpStatus.OK);
+        Map<String, Boolean> response = globalSettingsService.getSettings();
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @PreAuthorize("hasAuthority('user:moderate')")
     @PutMapping("/api/settings")
     public ResponseEntity<?> getGlobalSettings(@RequestBody Map<String, Boolean> request){
-        request.forEach((s, b) -> {
-            Optional<GlobalSettings> param = globalSettingsRepository.getByCode(s);
-            param.ifPresent(globalSettings -> {
-                globalSettings.setValue(b ? "YES" : "NO");
-                globalSettingsRepository.save(globalSettings);
-            });
-        });
+        globalSettingsService.setSettings(request);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @GetMapping("/api/tag")
     public TagsListResponse getTagList(@RequestParam(name = "query", required = false) String query){
-        return generalResponseService.getTagList(query);
+        return generalResponseService.getTagList1(query);
     }
 
     @GetMapping("/api/calendar")
     public CalendarResponse getCalendar(@RequestParam(name = "year", required = false) Integer year){
         if (year == null) year = ZonedDateTime.now(ZoneId.of("UTC")).getYear();
-        return calendarService.getCalendarResponse(year);
+        return calendarService.getCalendarResponse1(year);
     }
 
     @PreAuthorize("hasAuthority('user:write')")
@@ -113,17 +90,17 @@ public class ApiGeneralController {
     @PreAuthorize("hasAuthority('user:write')")
     @GetMapping("/api/statistics/my")
     public StatisticResponse getUserStatistic(@AuthenticationPrincipal UserDetailsImpl userDetails){
-        return statisticService.getUser(userDetails.getUser().getId());
+        return statisticService.getUser1(userDetails);
     }
 
     @PreAuthorize("hasAuthority('user:write')")
     @GetMapping("/api/statistics/all")
     public ResponseEntity<StatisticResponse> getGlobalStatistic(@AuthenticationPrincipal UserDetailsImpl userDetails){
-        GlobalSettings settings = globalSettingsRepository.getByCode("STATISTICS_IS_PUBLIC").orElseThrow(SettingsNotFoundException::new);
-        if (settings.getValue().equals("NO") && userDetails.getUser().getIsModerator() != 1){
+        StatisticResponse response = statisticService.getBlog1(userDetails);
+        if (response == null){
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         } else {
-            return ResponseEntity.ok(statisticService.getBlog());
+            return ResponseEntity.ok(response);
         }
     }
 }

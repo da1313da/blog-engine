@@ -4,7 +4,6 @@ import com.example.projects.blogengine.api.response.GenericResponse;
 import com.example.projects.blogengine.config.BlogProperties;
 import com.example.projects.blogengine.repository.UserRepository;
 import com.example.projects.blogengine.security.UserDetailsImpl;
-import com.example.projects.blogengine.service.interfaces.ImageUploadService;
 import com.example.projects.blogengine.utility.TokenGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,7 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Service
-public class ImageUploadServiceImpl implements ImageUploadService {
+public class ImageUploadService {
 
     private final Logger logger = LoggerFactory.getLogger(ImageUploadService.class);
     @Autowired
@@ -30,7 +29,6 @@ public class ImageUploadServiceImpl implements ImageUploadService {
     @Autowired
     private BlogProperties properties;
 
-    @Override
     public Object upload(UserDetailsImpl user, MultipartFile file) {
         long imageSize = properties.getUpload().getMaxImageSize().toBytes();
         if (file.getSize() > imageSize) throw new MaxUploadSizeExceededException(file.getSize());

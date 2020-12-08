@@ -68,7 +68,7 @@ public class AuthService {
     private BlogProperties properties;
 
     @Transactional
-    public CaptchaResponse getCaptchaResponse() {
+    public CaptchaResponse captcha() {
         captchaRepository.deleteCaptchaCodes();
         GCage cage = new GCage();
         CaptchaResponse response = new CaptchaResponse();
@@ -104,7 +104,7 @@ public class AuthService {
         return response;
     }
 
-    public GenericResponse getRegistrationResponse(RegistrationRequest request) {
+    public GenericResponse registration(RegistrationRequest request) {
         Optional<GlobalSettings> multiUserParam = globalSettingsRepository.getByCode("MULTIUSER_MODE");
         if (multiUserParam.isPresent()){
             GlobalSettings param = multiUserParam.get();
@@ -144,7 +144,7 @@ public class AuthService {
         return response;
     }
 
-    public GenericResponse getRestoreResult(EmailRequest email) {
+    public GenericResponse restorePassword(EmailRequest email) {
         User user = userRepository.getUserByEmailExpl(email.getEmail());
         GenericResponse response = new GenericResponse();
         if (user != null){
@@ -161,7 +161,7 @@ public class AuthService {
         return response;
     }
 
-    public GenericResponse getChangePasswordRequest(ChangePasswordRequest request) {
+    public GenericResponse changePassword(ChangePasswordRequest request) {
         User user = userRepository.getByCode(request.getCode());
         Map<String, String> errors = new HashMap<>();
         GenericResponse response = new GenericResponse();
@@ -190,7 +190,7 @@ public class AuthService {
         return response;
     }
 
-    public LoginResponse getLoginResponse(LoginRequest loginRequest) {
+    public LoginResponse login(LoginRequest loginRequest) {
         LoginResponse response = new LoginResponse();
         Authentication auth;
         try{
@@ -212,7 +212,7 @@ public class AuthService {
         return response;
     }
 
-    public LoginResponse logout(UserDetailsImpl userDetails) {
+    public LoginResponse logout() {
         LoginResponse response = new LoginResponse();
         try{
             SecurityContextHolder.clearContext();
@@ -223,7 +223,7 @@ public class AuthService {
         return response;
     }
 
-    public LoginResponse getUserStatus(Principal principal) {
+    public LoginResponse checkUserStatus(Principal principal) {
         LoginResponse response = new LoginResponse();
         if (principal == null){
             response.setResult(false);

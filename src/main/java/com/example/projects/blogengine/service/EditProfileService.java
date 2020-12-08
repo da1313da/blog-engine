@@ -7,7 +7,6 @@ import com.example.projects.blogengine.exception.UserNotFoundException;
 import com.example.projects.blogengine.model.User;
 import com.example.projects.blogengine.repository.UserRepository;
 import com.example.projects.blogengine.security.UserDetailsImpl;
-import com.example.projects.blogengine.service.interfaces.EditProfileService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -23,7 +22,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Service
-public class EditProfileServiceImpl implements EditProfileService {
+public class EditProfileService {
 
     @Autowired
     private UserRepository userRepository;
@@ -32,7 +31,6 @@ public class EditProfileServiceImpl implements EditProfileService {
     @Autowired
     private BlogProperties properties;
 
-    @Override
     public GenericResponse edit(MultipartFile photo, EditProfileRequest request, UserDetailsImpl userDetails) {
         User actualUser = userRepository.findById(userDetails.getUser().getId()).orElseThrow(UserNotFoundException::new);
         GenericResponse response = new GenericResponse();

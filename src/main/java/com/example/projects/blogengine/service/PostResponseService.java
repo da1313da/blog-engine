@@ -4,7 +4,10 @@ import com.example.projects.blogengine.api.request.CommentRequest;
 import com.example.projects.blogengine.api.request.CreatePostRequest;
 import com.example.projects.blogengine.api.request.LikeRequest;
 import com.example.projects.blogengine.api.request.ModerationRequest;
-import com.example.projects.blogengine.api.response.*;
+import com.example.projects.blogengine.api.response.GenericResponse;
+import com.example.projects.blogengine.api.response.PostAnnounceResponse;
+import com.example.projects.blogengine.api.response.PostListResponse;
+import com.example.projects.blogengine.api.response.PostResponse;
 import com.example.projects.blogengine.config.BlogProperties;
 import com.example.projects.blogengine.exception.CommentNotFoundException;
 import com.example.projects.blogengine.exception.GlobalSettingsNotFountException;
@@ -47,7 +50,7 @@ public class PostResponseService {
     @Autowired
     private CommentRepository commentRepository;
     @Autowired
-    private ModelMapper mapper;
+    private ModelMapper modelMapper;
     @Autowired
     private VoteRepository voteRepository;
     @Autowired
@@ -61,16 +64,17 @@ public class PostResponseService {
         Pageable page = new PageRequestWithOffset(limit, offset, Sort.unsorted());
         switch (mode) {
             case "popular":
-                posts = postRepository.getPopularPosts(page);
+                List<Post> prepare = postRepository.getPopularPosts1(page);
+                posts = postRepository.getPopularPosts2(prepare);
                 break;
             case "best":
-                posts = postRepository.getBestPosts(page);
+                posts = postRepository.getBestPosts2(postRepository.getBestPosts1(page));
                 break;
             case "early":
-                posts = postRepository.getEarlyPosts(page);
+                posts = postRepository.getEarlyPosts2(postRepository.getEarlyPosts1(page));
                 break;
             default:
-                posts = postRepository.getRecentPosts(page);
+                posts = postRepository.getRecentPosts2(postRepository.getRecentPosts1(page));
                 break;
         }
         response.setCount(postRepository.getPostsCount());
@@ -81,7 +85,7 @@ public class PostResponseService {
     private List<PostAnnounceResponse> convertToPostResponse(List<Post> posts){
         List<PostAnnounceResponse> response = new ArrayList<>();
         for (Post post : posts) {
-            PostAnnounceResponse postAnnounce = mapper.map(post, PostAnnounceResponse.class);
+            PostAnnounceResponse postAnnounce = modelMapper.map(post, PostAnnounceResponse.class);
             postAnnounce.setLikeCount((int) post.getVotes().stream().filter(postVote -> postVote.getValue() == 1).count());
             postAnnounce.setDislikeCount((int) post.getVotes().stream().filter(postVote -> postVote.getValue() == -1).count());
             postAnnounce.setCommentCount(post.getComments().size());
@@ -128,22 +132,7 @@ public class PostResponseService {
             post.setViewCount(post.getViewCount() + 1);
             postRepository.save(post);
         }
-        PostResponse response = mapper.map(post, PostResponse.class);
-        response.setLikeCount((int) post.getVotes().stream().filter(postVote -> postVote.getValue() == 1).count());
-        response.setDislikeCount((int) post.getVotes().stream().filter(postVote -> postVote.getValue() == -1).count());
-        response.setTimestamp(post.getTime().toEpochSecond());
-        List<CommentListResponse> commentList = new ArrayList<>();
-        List<String> tags = new ArrayList<>();
-        for (PostComment postComment : post.getComments()) {
-            commentList.add(mapper.map(postComment, CommentListResponse.class));
-            //todo photo null
-        }
-        for (Tag tag : post.getTags()) {
-            tags.add(tag.getName());
-        }
-        response.setComments(commentList);
-        response.setTags(tags);
-        return  response;
+        return modelMapper.map(post, PostResponse.class);
     }
 
     public PostListResponse getPostListToModeration(int limit, int offset, String status, UserDetailsImpl user) {
@@ -161,26 +150,26 @@ public class PostResponseService {
         PageRequestWithOffset page = new PageRequestWithOffset(limit, offset, Sort.unsorted());
         switch (status){
             case "inactive":
-                response.setPosts(convertToPostResponse(postRepository.getUserPosts(user.getUser(),
-                        List.of(ModerationType.NEW, ModerationType.ACCEPTED, ModerationType.DECLINED), (byte) 0, page)));
+                response.setPosts(convertToPostResponse(postRepository.getUserPosts(postRepository.getUserPosts(user.getUser(),
+                        List.of(ModerationType.NEW, ModerationType.ACCEPTED, ModerationType.DECLINED), (byte) 0, page))));
                 response.setCount(postRepository.getUserPostsCount(user.getUser(),
                         List.of(ModerationType.NEW, ModerationType.ACCEPTED, ModerationType.DECLINED), (byte) 0));
                 break;
             case "pending":
-                response.setPosts(convertToPostResponse(postRepository.getUserPosts(user.getUser(),
-                        List.of(ModerationType.NEW), (byte) 1, page)));
+                response.setPosts(convertToPostResponse(postRepository.getUserPosts(postRepository.getUserPosts(user.getUser(),
+                        List.of(ModerationType.NEW), (byte) 1, page))));
                 response.setCount(postRepository.getUserPostsCount(user.getUser(),
                         List.of(ModerationType.NEW), (byte) 1));
                 break;
             case "declined":
-                response.setPosts(convertToPostResponse(postRepository.getUserPosts(user.getUser(),
-                        List.of(ModerationType.DECLINED), (byte) 1, page)));
+                response.setPosts(convertToPostResponse(postRepository.getUserPosts(postRepository.getUserPosts(user.getUser(),
+                        List.of(ModerationType.DECLINED), (byte) 1, page))));
                 response.setCount(postRepository.getUserPostsCount(user.getUser(),
                         List.of(ModerationType.DECLINED), (byte) 1));
                 break;
             case "published":
-                response.setPosts(convertToPostResponse(postRepository.getUserPosts(user.getUser(),
-                        List.of(ModerationType.ACCEPTED), (byte) 1, page)));
+                response.setPosts(convertToPostResponse(postRepository.getUserPosts(postRepository.getUserPosts(user.getUser(),
+                        List.of(ModerationType.ACCEPTED), (byte) 1, page))));
                 response.setCount(postRepository.getUserPostsCount(user.getUser(),
                         List.of(ModerationType.ACCEPTED), (byte) 1));
                 break;
