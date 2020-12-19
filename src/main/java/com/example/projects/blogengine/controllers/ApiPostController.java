@@ -9,7 +9,7 @@ import com.example.projects.blogengine.api.response.PostListResponse;
 import com.example.projects.blogengine.api.response.PostResponse;
 import com.example.projects.blogengine.security.UserDetailsImpl;
 import com.example.projects.blogengine.service.PostAttributesService;
-import com.example.projects.blogengine.service.PostCollectionSrvice;
+import com.example.projects.blogengine.service.PostCollectionService;
 import com.example.projects.blogengine.service.PostResponseService;
 import com.example.projects.blogengine.service.PostUpdateService;
 import lombok.AllArgsConstructor;
@@ -26,7 +26,7 @@ public class ApiPostController {
     private final Logger logger = LoggerFactory.getLogger(ApiPostController.class);
 
     private final PostResponseService postResponseService;
-    private final PostCollectionSrvice postCollectionSrvice;
+    private final PostCollectionService postCollectionSrvice;
     private final PostUpdateService postUpdateService;
     private final PostAttributesService postAttributesService;
 

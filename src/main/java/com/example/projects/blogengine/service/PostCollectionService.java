@@ -26,9 +26,9 @@ import java.util.List;
 
 @Service
 @AllArgsConstructor
-public class PostCollectionSrvice {
+public class PostCollectionService {
 
-    private final Logger logger = LoggerFactory.getLogger(PostCollectionSrvice.class);
+    private final Logger logger = LoggerFactory.getLogger(PostCollectionService.class);
 
     private final PostRepository postRepository;
     private final ModelMapper modelMapper;
@@ -126,8 +126,16 @@ public class PostCollectionSrvice {
         PostListResponse response = new PostListResponse();
         PageRequestWithOffset page = new PageRequestWithOffset(limit, offset, Sort.unsorted());
         ModerationType type = ModerationType.valueOf(status.toUpperCase());
-        List<Post> postsModeratedByUser = postRepository.getModeratedPosts(user.getUser(), type, page);
-        response.setCount(postRepository.getModeratedPostCount(user.getUser(), type));
+        List<Post> postsModeratedByUser;
+        int postCount;
+        if (type.equals(ModerationType.NEW)){
+            postsModeratedByUser = postRepository.getALlModeratedPosts(postRepository.getAllModeratedPosts(ModerationType.NEW, page));
+            postCount = postRepository.getAllModeratedPostCount(ModerationType.NEW);
+        } else {
+            postsModeratedByUser = postRepository.getModeratedPosts(postRepository.getModeratedPosts(user.getUser(), type, page));
+            postCount = postRepository.getModeratedPostCount(user.getUser(), type);
+        }
+        response.setCount(postCount);
         response.setPosts(convertToPostResponse(postsModeratedByUser));
         return response;
     }

@@ -45,7 +45,7 @@ public class LoginService {
         User user = details.getUser();
         UserLoginResponse userLoginResponse = modelMapper.map(user, UserLoginResponse.class);
         userLoginResponse.setModeration(user.getIsModerator() == 1);
-        userLoginResponse.setModerationCount(user.getIsModerator() == 1? postRepository.getModeratedPostCount(user, ModerationType.NEW) : 0);
+        userLoginResponse.setModerationCount(user.getIsModerator() == 1? postRepository.getAllModeratedPostCount(ModerationType.NEW) : 0);
         userLoginResponse.setSettings(user.getIsModerator() == 1);
         response.setUser(userLoginResponse);
         return response;
@@ -73,7 +73,7 @@ public class LoginService {
                 .orElseThrow(() -> new NotFoundException(principal.getName() + " not found!", HttpStatus.BAD_REQUEST));
         UserLoginResponse userLoginResponse = modelMapper.map(user, UserLoginResponse.class);
         userLoginResponse.setModeration(user.getIsModerator() == 1);
-        userLoginResponse.setModerationCount(user.getIsModerator() == 1? postRepository.getModeratedPostCount(user, ModerationType.NEW) : 0);
+        userLoginResponse.setModerationCount(user.getIsModerator() == 1? postRepository.getAllModeratedPostCount(ModerationType.NEW) : 0);
         userLoginResponse.setSettings(user.getIsModerator() == 1);
         response.setUser(userLoginResponse);
         return response;

@@ -91,6 +91,7 @@ public class PostUpdateService {
         }
         GenericResponse response = new GenericResponse();
         post.setModerationStatus(request.getDecision().equals("accept") ? ModerationType.ACCEPTED : ModerationType.DECLINED);
+        post.setModerator(moderator);
         postRepository.save(post);
         response.setResult(true);
         return response;
@@ -122,7 +123,7 @@ public class PostUpdateService {
     private void setPostModerationTypeOnCreate(Post post, UserDetailsImpl user) {
         GlobalSettings postPreModeration = globalSettingsRepository.getByCode("POST_PREMODERATION")
                 .orElseThrow(() -> new NotFoundException("Global statistics not found!", HttpStatus.BAD_REQUEST));
-        if (postPreModeration.getValue().equals("YES") && user.getUser().getIsModerator() != (byte)1){
+        if (postPreModeration.getValue().equals("YES") && !user.getUser().getIsModerator().equals((byte)1)){
             post.setModerationStatus(ModerationType.NEW);
         } else {
             post.setModerationStatus(ModerationType.ACCEPTED);
@@ -136,10 +137,10 @@ public class PostUpdateService {
         if (request.getText() == null) {
             errors.put("text", "Текст не установлен");
         }
-        if (request.getTitle().length() <= blogProperties.getPost().getMinTitleSize()) {
+        if (request.getTitle().length() < blogProperties.getPost().getMinTitleSize()) {
             errors.put("title", "Заголовок публикации слишком короткий");
         }
-        if (request.getText().length() <= blogProperties.getPost().getMinTextSize()) {
+        if (request.getText().length() < blogProperties.getPost().getMinTextSize()) {
             errors.put("text", "Текст публикации слишком короткий");
         }
     }

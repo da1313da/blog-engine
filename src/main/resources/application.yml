@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/blog-engine?serverTimezone=UTC&useLegacyDatetimeCode=false
+    url: jdbc:${CLEARDB_DATABASE_URL:mysql://localhost:3306/blog-engine?serverTimezone=UTC&useLegacyDatetimeCode=false}
     username: root
     password: mysql
 #    initialization-mode: always
@@ -11,7 +11,7 @@ spring:
           time_zone: UTC
     generate-dll: flase
     hibernate:
-      ddl-auto: validate
+      ddl-auto: none
     show-sql: true
   flyway:
     enabled: true
@@ -68,3 +68,6 @@ blog:
     min-comment-size: 3
   email-address: noreply@blog.com
   host-path: http://localhost:8080
+
+server:
+  port: ${PORT:8080}

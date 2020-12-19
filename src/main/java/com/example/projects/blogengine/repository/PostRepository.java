@@ -111,15 +111,31 @@ public interface PostRepository extends JpaRepository<Post, Integer> {
     @Query("select p from Post p where p.user.id = ?1")
     List<Post> getUserPostsFetchVotes(int id);
 
-    @EntityGraph(attributePaths = {"user", "votes.user", "comments.user"}, type = EntityGraph.EntityGraphType.LOAD)
+    @EntityGraph(attributePaths = {"user", "moderator"}, type = EntityGraph.EntityGraphType.LOAD)
     @Query("select p from Post p" +
-            " left join p.comments pc" +
-            " where p.moderator = ?1 and p.isActive = 1 and p.moderationStatus = ?2" +
-            " order by pc.size desc")
+            " where p.moderator = ?1 and p.isActive = 1 and p.moderationStatus = ?2")
     List<Post> getModeratedPosts(User user, ModerationType status, Pageable pageable);
+
+    @EntityGraph(attributePaths = {"likes.user", "disLikes.user", "comments.user"}, type = EntityGraph.EntityGraphType.LOAD)
+    @Query("select p from Post p" +
+            " where p in ?1")
+    List<Post> getModeratedPosts(List<Post> initial);
+
+    @EntityGraph(attributePaths = {"user", "moderator"}, type = EntityGraph.EntityGraphType.LOAD)
+    @Query("select p from Post p" +
+            " where p.isActive = 1 and p.moderationStatus = ?1")
+    List<Post> getAllModeratedPosts(ModerationType status, Pageable pageable);
+
+    @EntityGraph(attributePaths = {"likes.user", "disLikes.user", "comments.user"}, type = EntityGraph.EntityGraphType.LOAD)
+    @Query("select p from Post p" +
+            " where p in ?1")
+    List<Post> getALlModeratedPosts(List<Post> initial);
 
     @Query("select count(p) from Post p where p.moderator = ?1 and p.isActive = 1 and p.moderationStatus = ?2")
     int getModeratedPostCount(User user, ModerationType status);
+
+    @Query("select count(p) from Post p where p.isActive = 1 and p.moderationStatus = ?1")
+    int getAllModeratedPostCount(ModerationType status);
 
     @EntityGraph(attributePaths = {"user","moderator"}, type = EntityGraph.EntityGraphType.LOAD)
     @Query("select p from Post p" +
