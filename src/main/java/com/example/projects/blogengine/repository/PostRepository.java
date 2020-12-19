@@ -12,7 +12,6 @@ import org.springframework.data.jpa.repository.Query;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 public interface PostRepository extends JpaRepository<Post, Integer> {
 
@@ -107,9 +106,6 @@ public interface PostRepository extends JpaRepository<Post, Integer> {
     @Query("select p from Post p where p.id = ?1")
     Optional<Post> getPostByIdPreloadTags(int id);
 
-    @EntityGraph(attributePaths = {"user", "likes.user", "disLikes.user"}, type = EntityGraph.EntityGraphType.LOAD)
-    @Query("select p from Post p")
-    Stream<Post> getPostsStreamFetchVotes();
 
     @EntityGraph(attributePaths = {"user", "likes.user", "disLikes.user"}, type = EntityGraph.EntityGraphType.LOAD)
     @Query("select p from Post p where p.user.id = ?1")
