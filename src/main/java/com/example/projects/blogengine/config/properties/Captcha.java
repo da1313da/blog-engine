@@ -6,6 +6,7 @@ import lombok.ToString;
 import org.hibernate.validator.constraints.Range;
 
 import javax.validation.constraints.NotNull;
+import java.time.Duration;
 
 @Getter
 @Setter
@@ -13,14 +14,15 @@ import javax.validation.constraints.NotNull;
 public class Captcha {
     @NotNull
     @Range(min = 30, max = 30)
-    Integer secretCodeLength;
+    private Integer secretCodeLength;
     @NotNull
     @Range(min = 5, max = 7)
-    Integer displayCodeLength;
+    private Integer displayCodeLength;
     @NotNull
     @Range(min = 100, max = 100)
-    Integer captchaImageWidth;
+    private Integer captchaImageWidth;
     @NotNull
     @Range(min = 35, max = 35)
-    Integer captchaImageHeight;
+    private Integer captchaImageHeight;
+    private Duration deleteTime;
 }

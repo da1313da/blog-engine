@@ -3,11 +3,12 @@ package com.example.projects.blogengine.service;
 import com.example.projects.blogengine.api.request.EditProfileRequest;
 import com.example.projects.blogengine.api.response.GenericResponse;
 import com.example.projects.blogengine.config.BlogProperties;
-import com.example.projects.blogengine.exception.UserNotFoundException;
+import com.example.projects.blogengine.exception.NotFoundException;
 import com.example.projects.blogengine.model.User;
 import com.example.projects.blogengine.repository.UserRepository;
 import com.example.projects.blogengine.security.UserDetailsImpl;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -32,7 +33,8 @@ public class EditProfileService {
     private BlogProperties properties;
 
     public GenericResponse edit(MultipartFile photo, EditProfileRequest request, UserDetailsImpl userDetails) {
-        User actualUser = userRepository.findById(userDetails.getUser().getId()).orElseThrow(UserNotFoundException::new);
+        User actualUser = userRepository.findById(userDetails.getUser().getId())
+                .orElseThrow(() -> new NotFoundException("User " + userDetails.getUser() + " not found!", HttpStatus.BAD_REQUEST));
         GenericResponse response = new GenericResponse();
         Map<String, String> errors = new HashMap<>();
         if (request.getName().matches("\\W")){

@@ -3,11 +3,9 @@ package com.example.projects.blogengine.exception;
 import com.example.projects.blogengine.api.response.GenericResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import java.util.HashMap;
@@ -18,34 +16,32 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
 
     private final Logger logger = LoggerFactory.getLogger(RestResponseEntityExceptionHandler.class);
 
-    @ExceptionHandler(value = MaxUploadSizeExceededException.class)
-    public ResponseEntity<GenericResponse> sizeLimitException(MaxUploadSizeExceededException exception){
+    @ExceptionHandler(value = NotFoundException.class)
+    public ResponseEntity<?> notFoundExceptionHandler(NotFoundException notFoundException){
+        Map<String, String> body = new HashMap<>();
+        body.put("message", notFoundException.getMessage());
+        return ResponseEntity.status(notFoundException.getHttpStatus()).body(body);
+    }
+
+    @ExceptionHandler(value = AccessDeniedException.class)
+    public ResponseEntity<?> accessDeniedException(AccessDeniedException accessDeniedException){
+        return ResponseEntity.status(accessDeniedException.getHttpStatus()).build();
+    }
+
+    @ExceptionHandler(value = ImageIOException.class)
+    public ResponseEntity<?> imageUploadExceptionHandler(ImageIOException exception){
         GenericResponse response = new GenericResponse();
         Map<String, String> errors = new HashMap<>();
-        errors.put("image", "Размер файла превышает допустимый размер");
+        errors.put("image", exception.getMessage());
         response.setResult(false);
         response.setErrors(errors);
-        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        return ResponseEntity.status(exception.getHttpStatus()).body(response);
     }
 
-    @ExceptionHandler(value = PostNotFountException.class)
-    public ResponseEntity<GenericResponse> sizeLimitException(PostNotFountException exception){
-        GenericResponse response = new GenericResponse();
-        response.setResult(false);
-        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
-    }
-
-    @ExceptionHandler(value = UserNotFoundException.class)
-    public ResponseEntity<GenericResponse> sizeLimitException(UserNotFoundException exception){
-        GenericResponse response = new GenericResponse();
-        response.setResult(false);
-        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
-    }
-
-    @ExceptionHandler(value = CommentNotFoundException.class)
-    public ResponseEntity<GenericResponse> sizeLimitException(CommentNotFoundException exception){
-        GenericResponse response = new GenericResponse();
-        response.setResult(false);
-        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    @ExceptionHandler(value = InternalException.class)
+    public ResponseEntity<?> internalExceptionHandler(InternalException internalException){
+        Map<String, String> body = new HashMap<>();
+        body.put("message", internalException.getMessage());
+        return ResponseEntity.status(internalException.getHttpStatus()).body(body);
     }
 }
