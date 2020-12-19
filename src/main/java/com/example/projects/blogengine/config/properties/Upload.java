@@ -14,9 +14,9 @@ import javax.validation.constraints.NotNull;
 public class Upload {
     @NotEmpty
     @NotNull
-    String location;
+    private String location;
     @NotNull
-    DataSize maxImageSize;
+    private DataSize maxImageSize;
     @NotNull
-    DataSize maxPhotoSize;
+    private DataSize maxPhotoSize;
 }

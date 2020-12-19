@@ -13,11 +13,11 @@ import javax.validation.constraints.NotNull;
 public class Post {
     @NotNull
     @Range(min = 3)
-    Integer minTitleSize;
+    private Integer minTitleSize;
     @NotNull
     @Range(min = 50)
-    Integer minTextSize;
+    private Integer minTextSize;
     @NotNull
-    @Range(min = 30)
-    Integer minCommentSize;
+    @Range(min = 3)
+    private Integer minCommentSize;
 }

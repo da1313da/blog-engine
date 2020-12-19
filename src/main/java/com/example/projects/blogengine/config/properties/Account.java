@@ -13,14 +13,14 @@ import javax.validation.constraints.NotNull;
 public class Account {
     @NotNull
     @Range(min = 36, max = 36)
-    Integer avatarImageWidth;
+    private Integer avatarImageWidth;
     @NotNull
     @Range(min = 36, max = 36)
-    Integer avatarImageHeight;
+    private Integer avatarImageHeight;
     @NotNull
     @Range(min = 6, max = 30)
-    Integer passwordLength;
+    private Integer passwordLength;
     @NotNull
     @Range(min = 45, max = 45)
-    Integer passwordRestoreTokenLength;
+    private Integer passwordRestoreTokenLength;
 }

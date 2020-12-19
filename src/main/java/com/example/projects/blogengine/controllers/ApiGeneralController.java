@@ -53,19 +53,19 @@ public class ApiGeneralController {
 
     @GetMapping("/api/tag")
     public TagsListResponse getTagList(@RequestParam(name = "query", required = false) String query){
-        return generalResponseService.getTagList1(query);
+        return generalResponseService.getTagList(query);
     }
 
     @GetMapping("/api/calendar")
     public CalendarResponse getCalendar(@RequestParam(name = "year", required = false) Integer year){
         if (year == null) year = ZonedDateTime.now(ZoneId.of("UTC")).getYear();
-        return calendarService.getCalendarResponse1(year);
+        return calendarService.getCalendarResponse(year);
     }
 
     @PreAuthorize("hasAuthority('user:write')")
     @PostMapping(value = "/api/image", consumes = {"multipart/form-data"})
-    public ResponseEntity<Object> addImage(@RequestParam("image") MultipartFile file, @AuthenticationPrincipal UserDetailsImpl user){
-        return ResponseEntity.ok(imageUploadService.upload(user, file));
+    public String addImage(@RequestParam("image") MultipartFile file){
+        return imageUploadService.upload(file);
     }
 
     @PreAuthorize("hasAuthority('user:write')")
@@ -90,17 +90,12 @@ public class ApiGeneralController {
     @PreAuthorize("hasAuthority('user:write')")
     @GetMapping("/api/statistics/my")
     public StatisticResponse getUserStatistic(@AuthenticationPrincipal UserDetailsImpl userDetails){
-        return statisticService.getUser1(userDetails);
+        return statisticService.getUser(userDetails);
     }
 
     @PreAuthorize("hasAuthority('user:write')")
     @GetMapping("/api/statistics/all")
-    public ResponseEntity<StatisticResponse> getGlobalStatistic(@AuthenticationPrincipal UserDetailsImpl userDetails){
-        StatisticResponse response = statisticService.getBlog1(userDetails);
-        if (response == null){
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-        } else {
-            return ResponseEntity.ok(response);
-        }
+    public StatisticResponse getGlobalStatistic(@AuthenticationPrincipal UserDetailsImpl userDetails){
+        return statisticService.getBlog(userDetails);
     }
 }

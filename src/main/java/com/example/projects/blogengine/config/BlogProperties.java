@@ -37,4 +37,7 @@ public class BlogProperties {
     @NotNull
     @NotEmpty
     private String emailAddress;
+    @NotNull
+    @NotEmpty
+    private String hostPath;
 }
