@@ -1,18 +1,17 @@
 package com.example.projects.blogengine.service;
 
 import com.example.projects.blogengine.config.BlogProperties;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
 @Service
+@AllArgsConstructor
 public class SpringEmailService{
 
-    @Autowired
-    private JavaMailSender mailSender;
-    @Autowired
-    private BlogProperties blogProperties;
+    private final JavaMailSender mailSender;
+    private final BlogProperties blogProperties;
 
     public void sendSimpleMessage(String to, String subject, String text) {
         SimpleMailMessage message = new SimpleMailMessage();

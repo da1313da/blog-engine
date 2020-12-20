@@ -19,7 +19,7 @@ spring:
     host: smtp.gmail.com
     port: 587
     username: m63336072@gmail.com
-    password: fd82lHsnkpw93dk
+    password: 478sdkalsiYUwkw52sdf8
     properties:
       mail:
         smtp:
@@ -67,7 +67,7 @@ blog:
     min-text-size: 50
     min-comment-size: 3
   email-address: noreply@blog.com
-  host-path: http://localhost:8080
+  host-path: https://hm-blog-app.herokuapp.com
 
 server:
   port: ${PORT:8080}
