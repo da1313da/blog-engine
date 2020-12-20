@@ -14,7 +14,7 @@ spring:
       ddl-auto: none
     show-sql: true
   flyway:
-    enabled: true
+    enabled: false
   mail:
     host: smtp.gmail.com
     port: 587

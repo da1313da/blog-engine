@@ -19,7 +19,7 @@ public interface TagRepository extends JpaRepository<Tag, Integer> {
 
     @Query(value = "SELECT \n" +
             "    t.name AS tagName,\n" +
-            "    CAST(COUNT(ttp.tag_id) AS DOUBLE precision) / (SELECT \n" +
+            "    CAST(COUNT(ttp.tag_id) AS decimal(10,9)) / (SELECT \n" +
             "            MAX(t_count)\n" +
             "        FROM\n" +
             "            (SELECT \n" +
@@ -44,7 +44,7 @@ public interface TagRepository extends JpaRepository<Tag, Integer> {
 
     @Query(value = "SELECT \n" +
             "    t.name AS tagName,\n" +
-            "    CAST(COUNT(ttp.tag_id) AS DOUBLE precision) / (SELECT \n" +
+            "    CAST(COUNT(ttp.tag_id) AS decimal(10,9)) / (SELECT \n" +
             "            MAX(t_count)\n" +
             "        FROM\n" +
             "            (SELECT \n" +
