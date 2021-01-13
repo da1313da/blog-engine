@@ -13,6 +13,7 @@ import java.util.Set;
 
 @Data
 @EqualsAndHashCode(exclude = "comments")
+@ToString(exclude = "comments")
 @Entity
 @Table(name = "post_comments")
 public class PostComment {
@@ -20,11 +21,11 @@ public class PostComment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id")
     private PostComment parent;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "post_id", nullable = false)
     private Post post;
 
@@ -39,7 +40,6 @@ public class PostComment {
     private String text;
 
     @JsonIgnore
-    @ToString.Exclude
     @OneToMany(mappedBy = "parent")
     private Set<PostComment> comments = new HashSet<>();
 

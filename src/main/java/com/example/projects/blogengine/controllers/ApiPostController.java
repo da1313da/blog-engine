@@ -13,8 +13,6 @@ import com.example.projects.blogengine.service.PostCollectionService;
 import com.example.projects.blogengine.service.PostResponseService;
 import com.example.projects.blogengine.service.PostUpdateService;
 import lombok.AllArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -23,10 +21,8 @@ import org.springframework.web.bind.annotation.*;
 @AllArgsConstructor
 public class ApiPostController {
 
-    private final Logger logger = LoggerFactory.getLogger(ApiPostController.class);
-
     private final PostResponseService postResponseService;
-    private final PostCollectionService postCollectionSrvice;
+    private final PostCollectionService postCollectionService;
     private final PostUpdateService postUpdateService;
     private final PostAttributesService postAttributesService;
 
@@ -34,7 +30,7 @@ public class ApiPostController {
     public PostListResponse getPostResponse(@RequestParam(name = "offset", required = false, defaultValue = "0") int offset,
                                             @RequestParam(name = "limit", required = false, defaultValue = "1") int limit,
                                             @RequestParam(name = "mode", required = false, defaultValue = "recent") String mode){
-        return postCollectionSrvice.getPostList(limit, offset, mode);
+        return postCollectionService.getPostList(limit, offset, mode);
     }
 
     @GetMapping("api/post/byDate")
@@ -42,21 +38,21 @@ public class ApiPostController {
                                             @RequestParam(name = "limit", required = false, defaultValue = "1") int limit,
                                             @RequestParam(name = "date", required = false, defaultValue = "#{T(java.time.ZonedDateTime).now(T(java.time.ZoneId).of(\"UTC\")).format(T(java.time.format.DateTimeFormatter).ofPattern(\"yyyy-MM-dd\"))}") String date){
         System.out.println(date);
-        return postCollectionSrvice.getPostListByDate(limit, offset, date);
+        return postCollectionService.getPostListByDate(limit, offset, date);
     }
 
     @GetMapping("api/post/byTag")
     public PostListResponse getPostResponseByTag(@RequestParam(name = "offset", required = false, defaultValue = "0") int offset,
                                                  @RequestParam(name = "limit", required = false, defaultValue = "1") int limit,
                                                  @RequestParam(name = "tag") String tag){
-        return postCollectionSrvice.getPostListByTag(limit, offset, tag);
+        return postCollectionService.getPostListByTag(limit, offset, tag);
     }
 
     @GetMapping("api/post/search")
     public PostListResponse getPostsByQuery(@RequestParam(name = "offset", required = false, defaultValue = "0") int offset,
                                                  @RequestParam(name = "limit") int limit,
                                                  @RequestParam(name = "query") String query){
-        return postCollectionSrvice.getPostsByQuery(limit, offset, query);
+        return postCollectionService.getPostsByQuery(limit, offset, query);
     }
 
     @PreAuthorize("hasAuthority('user:moderate')")
@@ -66,7 +62,7 @@ public class ApiPostController {
                                                  @RequestParam(name = "status") String status,
                                                         @AuthenticationPrincipal UserDetailsImpl user){
 
-        return postCollectionSrvice.getPostListToModeration(limit, offset, status, user);
+        return postCollectionService.getPostListToModeration(limit, offset, status, user);
     }
 
     @GetMapping("api/post/{id}")
@@ -80,7 +76,7 @@ public class ApiPostController {
                                          @RequestParam int limit,
                                          @RequestParam String status,
                                          @AuthenticationPrincipal UserDetailsImpl user){
-        return postCollectionSrvice.getUserPosts(offset, limit, status, user);
+        return postCollectionService.getUserPosts(offset, limit, status, user);
     }
 
     @PreAuthorize("hasAuthority('user:write')")

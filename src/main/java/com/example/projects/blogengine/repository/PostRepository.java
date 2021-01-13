@@ -4,6 +4,7 @@ import com.example.projects.blogengine.model.ModerationType;
 import com.example.projects.blogengine.model.Post;
 import com.example.projects.blogengine.model.User;
 import com.example.projects.blogengine.repository.projections.CalendarStatistics;
+import com.example.projects.blogengine.repository.projections.PostWithStatistics;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -15,70 +16,34 @@ import java.util.Optional;
 
 public interface PostRepository extends JpaRepository<Post, Integer> {
 
-    @Query("select p, u, m from Post p" +
-            " join p.user u" +
-            " left join p.moderator m" +
-            " where p.isActive = 1 and p.moderationStatus = 'ACCEPTED' and p.time < now()" +
-            " order by size(p.comments) desc")
-    List<Post> getPopularPosts1(Pageable page);
-    @EntityGraph(attributePaths = {"likes.user", "disLikes.user","comments.user"}, type = EntityGraph.EntityGraphType.LOAD)
+    @Query("select p from Post p join fetch p.user" +
+            " where p.isActive = 1 and p.moderationStatus = 'ACCEPTED' and p.time < now() order by p.time desc")
+    List<Post> getRecentPosts(Pageable pageable);
+
     @Query("select p from Post p" +
-            " where p in ?1" +
-            " order by size(p.comments) desc")
-    List<Post> getPopularPosts2(List<Post> first);
+            " where p.isActive = 1 and p.moderationStatus = 'ACCEPTED' and p.time < now() order by p.time asc")
+    List<Post> getEarlyPosts(Pageable pageable);
 
-    @Query("select p, u, m from Post p" +
-            " join p.user u" +
-            " left join p.moderator m" +
-            " where p.isActive = 1 and p.moderationStatus = 'ACCEPTED' and p.time < now()" +
-            " order by p.likes.size desc")
-    List<Post> getBestPosts1(Pageable page);
-    @EntityGraph(attributePaths = {"likes.user", "disLikes.user","comments.user"}, type = EntityGraph.EntityGraphType.LOAD)
+    @Query("select p from Post p join fetch p.user" +
+            " where p.isActive = 1 and p.moderationStatus = 'ACCEPTED' and p.time < now() order by size(p.comments) desc")
+    List<Post> getPopularPosts(Pageable pageable);
+
+    @Query("select p, (select count(pv) from PostVote pv where pv.value = 1 and pv.post = p) as likes" +
+            " from Post p join fetch p.user where p.isActive = 1 and p.moderationStatus = 'ACCEPTED' and p.time < now() order by likes desc")
+    List<Post> getBestPost(Pageable pageable);
+
     @Query("select p from Post p" +
-            " where p in ?1" +
-            " order by p.likes.size desc")
-    List<Post> getBestPosts2(List<Post> first);
+            " where p.isActive = 1 and p.moderationStatus = 'ACCEPTED' and p.time < now() and p.text like %?1% or p.title like %?1%")
+    List<Post> getPostListBySearchWord(String searchWord, Pageable pageable);
 
-    @Query("select p, u, m from Post p" +
-            " join p.user u" +
-            " left join p.moderator m" +
-            " where p.isActive = 1 and p.moderationStatus = 'ACCEPTED' and p.time < now()" +
-            " order by (p.time) asc")
-    List<Post> getEarlyPosts1(Pageable page);
-    @EntityGraph(attributePaths = {"likes.user", "disLikes.user","comments.user"}, type = EntityGraph.EntityGraphType.LOAD)
-    @Query("select p from Post p" +
-            " where p in ?1" +
-            " order by (p.time) asc")
-    List<Post> getEarlyPosts2(List<Post> first);
-
-    @Query("select p, u, m from Post p" +
-            " join p.user u" +
-            " left join p.moderator m" +
-            " where p.isActive = 1 and p.moderationStatus = 'ACCEPTED' and p.time < now()" +
-            " order by p.time desc")
-    List<Post> getRecentPosts1(Pageable page);
-    @EntityGraph(attributePaths = {"likes.user", "disLikes.user","comments.user"}, type = EntityGraph.EntityGraphType.LOAD)
-    @Query("select p from Post p" +
-            " where p in ?1" +
-            " order by p.time desc")
-    List<Post> getRecentPosts2(List<Post> first);
-
-    @EntityGraph(attributePaths = {"user", "moderator"}, type = EntityGraph.EntityGraphType.LOAD)
-    @Query("select p from Post p where p.text like %?1% and p.isActive = 1 and p.moderationStatus = 'ACCEPTED' and p.time < now()")
-    List<Post> getPostsByQuery(String query, Pageable pageable);
-
-    @EntityGraph(attributePaths = {"likes.user", "disLikes.user", "comments.user"}, type = EntityGraph.EntityGraphType.LOAD)
-    @Query("select p from Post p where p in ?1")
-    List<Post> getPostsByQuery(List<Post> initial);
-
-    @Query("select count(p) from Post p where p.text like %?1% and p.isActive = 1 and p.moderationStatus = 'ACCEPTED' and p.time < now()")
-    int getPostCountByQuery(String query);
+    @Query("select count(p) from Post p" +
+            " where p.isActive = 1 and p.moderationStatus = 'ACCEPTED' and p.time < now() and p.text like %?1% or p.title like %?1%")
+    int getPostListCountBySearchWord(String searchWord);
 
     @Query("select count(p) from Post p where p.isActive = 1 and p.moderationStatus = 'ACCEPTED' and p.time < now()")
-    int getPostsCount();
+    int getPostCount();
 
-    @EntityGraph(attributePaths = {"user", "votes.user", "comments.user"}, type = EntityGraph.EntityGraphType.LOAD)
-    @Query("select p from Post p" +
+    @Query("select p from Post p join fetch p.user" +
             " where p.isActive = 1 and p.moderationStatus = 'ACCEPTED' and p.time < now() and p.time between ?1 and ?2")
     List<Post> getPostsByDate(ZonedDateTime start, ZonedDateTime end, Pageable page);
 
@@ -86,19 +51,15 @@ public interface PostRepository extends JpaRepository<Post, Integer> {
             " where p.isActive = 1 and p.moderationStatus = 'ACCEPTED' and p.time < now() and p.time between ?1 and ?2")
     int getPostsCountByDate(ZonedDateTime start, ZonedDateTime end);
 
-    @EntityGraph(attributePaths = {"user", "moderator"}, type = EntityGraph.EntityGraphType.LOAD)
-    @Query("select p from Post p join p.tags t where t.name = ?1 and p.isActive = 1 and p.moderationStatus = 'ACCEPTED' and p.time < now()")
+    @Query("select p from Post p join fetch p.user join p.tags t" +
+            " where t.name = ?1 and p.isActive = 1 and p.moderationStatus = 'ACCEPTED' and p.time < now()")
     List<Post> getPostsByTag(String tag, Pageable pageable);
 
-    @EntityGraph(attributePaths = {"user", "likes.user", "disLikes.user", "comments.user"}, type = EntityGraph.EntityGraphType.LOAD)
-    @Query("select p from Post p where p in ?1")
-    List<Post> getPostsByTag1(List<Post> initial);
-
-    @Query("select count(p) from Post p" +
-            " where ?1 = any(select t.name from p.tags t) and p.isActive = 1 and p.moderationStatus = 'ACCEPTED' and p.time < now()")
+    @Query("select count(p) from Post p join p.tags t" +
+            " where t.name = ?1 and p.isActive = 1 and p.moderationStatus = 'ACCEPTED' and p.time < now()")
     int getPostsCountByTag(String tag);
 
-    @EntityGraph(attributePaths = {"user", "likes.user", "disLikes.user", "comments.user"}, type = EntityGraph.EntityGraphType.LOAD)
+    @EntityGraph(attributePaths = {"user", "comments.user"}, type = EntityGraph.EntityGraphType.LOAD)
     @Query("select p from Post p where p.id = ?1")
     Optional<Post> getPostById(int id);
 
@@ -106,48 +67,31 @@ public interface PostRepository extends JpaRepository<Post, Integer> {
     @Query("select p from Post p where p.id = ?1")
     Optional<Post> getPostByIdPreloadTags(int id);
 
+    @Query("select p as post," +
+            " (select count(pc) from PostComment pc where pc.post = p) as commentCount," +
+            " (select count(pv) from PostVote pv where pv.post = p and pv.value = 1) as likes," +
+            " (select count(pv) from PostVote pv where pv.post = p and pv.value = -1) as dislikes" +
+            " from Post p join fetch p.user where p.isActive = 1 and p.moderationStatus = 'NEW'")
+    List<PostWithStatistics> getNewActivePosts(Pageable pageable);
 
-    @EntityGraph(attributePaths = {"user", "likes.user", "disLikes.user"}, type = EntityGraph.EntityGraphType.LOAD)
-    @Query("select p from Post p where p.user.id = ?1")
-    List<Post> getUserPostsFetchVotes(int id);
+    int countByIsActiveAndModerationStatus(byte isActive, ModerationType moderationType);
 
-    @EntityGraph(attributePaths = {"user", "moderator"}, type = EntityGraph.EntityGraphType.LOAD)
-    @Query("select p from Post p" +
-            " where p.moderator = ?1 and p.isActive = 1 and p.moderationStatus = ?2")
-    List<Post> getModeratedPosts(User user, ModerationType status, Pageable pageable);
+    @Query("select p as post," +
+            " (select count(pc) from PostComment pc where pc.post = p) as commentCount," +
+            " (select count(pv) from PostVote pv where pv.post = p and pv.value = 1) as likes," +
+            " (select count(pv) from PostVote pv where pv.post = p and pv.value = -1) as dislikes" +
+            " from Post p join fetch p.user where p.user = ?1 and p.isActive = ?3 and p.moderationStatus in ?2")
+    List<PostWithStatistics> getUserPosts(User user, List<ModerationType> status, byte isActive, Pageable pageable);
 
-    @EntityGraph(attributePaths = {"likes.user", "disLikes.user", "comments.user"}, type = EntityGraph.EntityGraphType.LOAD)
-    @Query("select p from Post p" +
-            " where p in ?1")
-    List<Post> getModeratedPosts(List<Post> initial);
-
-    @EntityGraph(attributePaths = {"user", "moderator"}, type = EntityGraph.EntityGraphType.LOAD)
-    @Query("select p from Post p" +
-            " where p.isActive = 1 and p.moderationStatus = ?1")
-    List<Post> getAllModeratedPosts(ModerationType status, Pageable pageable);
-
-    @EntityGraph(attributePaths = {"likes.user", "disLikes.user", "comments.user"}, type = EntityGraph.EntityGraphType.LOAD)
-    @Query("select p from Post p" +
-            " where p in ?1")
-    List<Post> getALlModeratedPosts(List<Post> initial);
+    @Query("select p as post," +
+            " (select count(pc) from PostComment pc where pc.post = p) as commentCount," +
+            " (select count(pv) from PostVote pv where pv.post = p and pv.value = 1) as likes," +
+            " (select count(pv) from PostVote pv where pv.post = p and pv.value = -1) as dislikes" +
+            " from Post p join fetch p.user where p.moderator = ?1 and p.isActive = 1 and p.moderationStatus = ?2")
+    List<PostWithStatistics> getPostsModeratedByUser(User user, ModerationType moderationType, Pageable pageable);
 
     @Query("select count(p) from Post p where p.moderator = ?1 and p.isActive = 1 and p.moderationStatus = ?2")
-    int getModeratedPostCount(User user, ModerationType status);
-
-    @Query("select count(p) from Post p where p.isActive = 1 and p.moderationStatus = ?1")
-    int getAllModeratedPostCount(ModerationType status);
-
-    @EntityGraph(attributePaths = {"user","moderator"}, type = EntityGraph.EntityGraphType.LOAD)
-    @Query("select p from Post p" +
-            " where p.user = ?1 and p.isActive = ?3 and p.moderationStatus in ?2" +
-            " order by p.comments.size desc")
-    List<Post> getUserPosts(User user, List<ModerationType> status, byte isActive,  Pageable pageable);
-
-    @EntityGraph(attributePaths = {"user", "likes.user", "disLikes.user", "comments.user"}, type = EntityGraph.EntityGraphType.LOAD)
-    @Query("select p from Post p" +
-            " where p in ?1" +
-            " order by p.comments.size desc")
-    List<Post> getUserPosts(List<Post> first);
+    int getPostsModeratedByUserCount(User user, ModerationType moderationType);
 
     @Query("select count(p) from Post p where p.user = ?1 and p.isActive = ?3 and p.moderationStatus in ?2")
     int getUserPostCount(User user, List<ModerationType> status, byte isActive);
@@ -165,7 +109,7 @@ public interface PostRepository extends JpaRepository<Post, Integer> {
     @Query("select year(p.time)" +
             " from Post p" +
             " where p.isActive = 1 and p.moderationStatus = 'ACCEPTED' and p.time < now() group by year(p.time)")
-    List<Integer> getYears();
+    List<Integer> getYearsWithActivePosts();
 
     @Query("select count(pv.id)" +
             " from PostVote pv" +
@@ -180,7 +124,7 @@ public interface PostRepository extends JpaRepository<Post, Integer> {
 
     @Query("select sum(p.viewCount)" +
             " from Post p where p.isActive = 1 and p.moderationStatus = 'ACCEPTED' and p.time < now()")
-    int getAllViewCount();
+    Optional<Integer> getAllViewCount();
 
     @Query("select p.time from Post p where p.isActive = 1 and p.moderationStatus = 'ACCEPTED' and p.time < now()")
     List<ZonedDateTime> getAllPostFirstPublicationTime(Pageable pageable);
@@ -201,7 +145,7 @@ public interface PostRepository extends JpaRepository<Post, Integer> {
 
     @Query("select sum(p.viewCount)" +
             " from Post p where p.user.id = ?1 and p.isActive = 1 and p.moderationStatus = 'ACCEPTED' and p.time < now()")
-    int getUserViewCount(int userId);
+    Optional<Integer> getUserViewCount(int userId);
 
     @Query("select p.time" +
             " from Post p where p.user.id = ?1 and p.isActive = 1 and p.moderationStatus = 'ACCEPTED' and p.time < now()")

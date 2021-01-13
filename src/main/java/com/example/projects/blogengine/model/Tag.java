@@ -25,14 +25,4 @@ public class Tag {
     @ToString.Exclude
     @ManyToMany(mappedBy = "tags")
     private Set<Post> posts = new HashSet<>();
-
-    public void addPost(Post post){
-        posts.add(post);
-        post.getTags().add(this);
-    }
-
-    public void removePost(Post post){
-        posts.remove(post);
-        post.getTags().remove(this);
-    }
 }

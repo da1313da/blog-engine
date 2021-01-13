@@ -4,15 +4,19 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import org.hibernate.annotations.Where;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 
 import javax.persistence.*;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Data
-@EqualsAndHashCode(exclude = {"tags", "comments", "votes", "likes", "disLikes"})
+@EqualsAndHashCode(exclude = {"tags", "comments", "votes"})
+@ToString(exclude = {"tags", "comments", "votes"})
 @Entity
 @Table(name = "posts")
 public class Post {
@@ -27,11 +31,11 @@ public class Post {
     @Column(nullable = false)
     private ModerationType moderationStatus;
 
-    @ManyToOne(cascade = CascadeType.PERSIST)
+    @ManyToOne(cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
     @JoinColumn(name = "moderator_id")
     private User moderator;
 
-    @ManyToOne(cascade = CascadeType.PERSIST)
+    @ManyToOne(cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
@@ -48,34 +52,21 @@ public class Post {
     private Integer viewCount;
 
     @JsonIgnore
-    @ToString.Exclude
-    @ManyToMany
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(name = "tag2post",
             joinColumns = @JoinColumn(name = "post_id"),
             inverseJoinColumns = @JoinColumn(name = "tag_id"))
     private Set<Tag> tags = new HashSet<>();
 
+    @Fetch(FetchMode.SUBSELECT)
     @JsonIgnore
-    @ToString.Exclude
     @OneToMany(mappedBy = "post", cascade = CascadeType.PERSIST)
-    private Set<PostComment> comments = new HashSet<>();
+    private List<PostComment> comments = new ArrayList<>();
 
+    @Fetch(FetchMode.SUBSELECT)
     @JsonIgnore
-    @ToString.Exclude
     @OneToMany(mappedBy = "post", cascade = CascadeType.PERSIST)
-    private Set<PostVote> votes = new HashSet<>();
-
-    @JsonIgnore
-    @ToString.Exclude
-    @Where(clause = "value = 1")
-    @OneToMany(mappedBy = "post")
-    private Set<PostVote> likes = new HashSet<>();
-
-    @JsonIgnore
-    @ToString.Exclude
-    @Where(clause = "value = -1")
-    @OneToMany(mappedBy = "post")
-    private Set<PostVote> disLikes = new HashSet<>();
+    private List<PostVote> votes = new ArrayList<>();
 
     public void addTag(Tag tag){
         tags.add(tag);

@@ -15,7 +15,7 @@ public class Post {
     @Range(min = 3)
     private Integer minTitleSize;
     @NotNull
-    @Range(min = 50)
+    @Range(min = 3)
     private Integer minTextSize;
     @NotNull
     @Range(min = 3)

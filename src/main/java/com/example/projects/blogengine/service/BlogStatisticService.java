@@ -17,7 +17,6 @@ import org.springframework.stereotype.Service;
 import java.time.ZonedDateTime;
 import java.util.List;
 
-//todo check in db for user?
 @Service
 public class BlogStatisticService {
 
@@ -29,13 +28,13 @@ public class BlogStatisticService {
     public StatisticResponse getUser(UserDetailsImpl userDetails) {
         int userId = userDetails.getUser().getId();
         Pageable pageable = PageRequest.of(0, 1, Sort.by(Sort.Direction.ASC, "time"));
+        StatisticResponse statisticResponse = new StatisticResponse();
         List<ZonedDateTime> firstPublicationTime = postRepository.getUserPostFirstPublicationTime(userId, pageable);
         Long firstPublicationTimeStamp = firstPublicationTime.isEmpty() ? null : firstPublicationTime.get(0).toEpochSecond();
         int postsCount = postRepository.getUserPostCount(userId);
         int allLikesCount = postRepository.getUserLikesCount(userId);
         int allDislikesCount = postRepository.getUserDislikesCount(userId);
-        int allViewCount = postRepository.getUserViewCount(userId);
-        StatisticResponse statisticResponse = new StatisticResponse();
+        int allViewCount = postRepository.getUserViewCount(userId).orElse(0);
         statisticResponse.setFirstPublication(firstPublicationTimeStamp);
         statisticResponse.setViewsCount(allViewCount);
         statisticResponse.setDislikesCount(allDislikesCount);
@@ -51,14 +50,14 @@ public class BlogStatisticService {
         if (settings.getValue().equals("NO") && userDetails.getUser().getIsModerator() != 1) {
             throw new AccessDeniedException("Global statistics available only for users with moderator authorities", HttpStatus.UNAUTHORIZED);
         } else {
+            StatisticResponse statisticResponse = new StatisticResponse();
             Pageable pageable = PageRequest.of(0, 1, Sort.by(Sort.Direction.ASC, "time"));
             List<ZonedDateTime> firstPublicationTime = postRepository.getAllPostFirstPublicationTime(pageable);
             Long firstPublicationTimeStamp = firstPublicationTime.isEmpty() ? null : firstPublicationTime.get(0).toEpochSecond();
-            int postsCount = postRepository.getPostsCount();
+            int postsCount = postRepository.getPostCount();
             int allLikesCount = postRepository.getAllLikesCount();
             int allDislikesCount = postRepository.getAllDislikesCount();
-            int allViewCount = postRepository.getAllViewCount();
-            StatisticResponse statisticResponse = new StatisticResponse();
+            int allViewCount = postRepository.getAllViewCount().orElse(0);
             statisticResponse.setFirstPublication(firstPublicationTimeStamp);
             statisticResponse.setViewsCount(allViewCount);
             statisticResponse.setDislikesCount(allDislikesCount);

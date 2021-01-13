@@ -5,9 +5,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
 public class PageRequestWithOffset implements Pageable {
-    private int limit;
-    private long offset;
-    private Sort sort;
+    private final int limit;
+    private final long offset;
+    private final Sort sort;
 
     public PageRequestWithOffset(int limit, long offset, Sort sort) {
         if (limit < 1) throw new IllegalArgumentException("Limit must be positive integer greater then zero");

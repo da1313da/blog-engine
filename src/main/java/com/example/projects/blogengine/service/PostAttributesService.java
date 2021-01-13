@@ -36,7 +36,6 @@ public class PostAttributesService {
         Post post = postRepository.findById(request.getPostId())
                 .orElseThrow(() -> new NotFoundException("Post with id " + request.getPostId() + " not found!", HttpStatus.BAD_REQUEST));
         PostComment postComment = new PostComment();
-        //todo move to controller advise?
         if (request.getText() == null || request.getText().length() < blogProperties.getPost().getMinCommentSize()){
             GenericResponse response = new GenericResponse();
             response.setResult(false);

@@ -19,7 +19,7 @@ public class CalendarService {
     public CalendarResponse getCalendarResponse(Integer year) {
         CalendarResponse response = new CalendarResponse();
         List<CalendarStatistics> statistics = postRepository.getPostCountPerDay(year);
-        List<Integer> years = postRepository.getYears();
+        List<Integer> years = postRepository.getYearsWithActivePosts();
         Map<String, Integer> posts = new HashMap<>();
         statistics.forEach(p -> {
             String formatted = Arrays.stream(p.getDate()

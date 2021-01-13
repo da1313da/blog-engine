@@ -4,7 +4,7 @@ import com.example.projects.blogengine.api.request.EditProfileRequest;
 import com.example.projects.blogengine.api.response.*;
 import com.example.projects.blogengine.security.UserDetailsImpl;
 import com.example.projects.blogengine.service.*;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -17,21 +17,16 @@ import java.time.ZonedDateTime;
 import java.util.Map;
 
 @RestController
+@AllArgsConstructor
 public class ApiGeneralController {
-    @Autowired
-    private GlobalSettingsService globalSettingsService;
-    @Autowired
-    private TagService generalResponseService;
-    @Autowired
-    private ImageUploadService imageUploadService;
-    @Autowired
-    private EditProfileService editProfileService;
-    @Autowired
-    private BlogStatisticService statisticService;
-    @Autowired
-    private CalendarService calendarService;
-    @Autowired
-    private GlobalInfoService globalInfoService;
+
+    private final GlobalSettingsService globalSettingsService;
+    private final TagService generalResponseService;
+    private final ImageUploadService imageUploadService;
+    private final EditProfileService editProfileService;
+    private final BlogStatisticService statisticService;
+    private final CalendarService calendarService;
+    private final GlobalInfoService globalInfoService;
 
     @GetMapping("/api/init")
     public GeneralInfoResponse getGeneralInfo(){

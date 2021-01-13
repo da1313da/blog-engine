@@ -35,11 +35,10 @@ public class RegistrationUserService {
         CaptchaCode captcha = captchaRepository.getBySecretCode(request.getCaptchaSecret())
                 .orElseThrow(() -> new NotFoundException("Captcha secret code is outdated!", HttpStatus.BAD_REQUEST));
         GenericResponse response = new GenericResponse();
-        Map<String, String> errors = new HashMap<>();
         if (multiUserParam.getValue().equals("NO")){
             throw new AccessDeniedException("Registration is closed!", HttpStatus.NOT_FOUND);
         }
-        validateRegistrationRequest(request, captcha, errors);
+        Map<String, String> errors = validateRegistrationRequest(request, captcha);
         if (errors.size() > 0){
             response.setResult(false);
             response.setErrors(errors);
@@ -59,7 +58,8 @@ public class RegistrationUserService {
         userRepository.save(user);
     }
 
-    private void validateRegistrationRequest(RegistrationRequest request, CaptchaCode captcha, Map<String, String> errors) {
+    private Map<String, String> validateRegistrationRequest(RegistrationRequest request, CaptchaCode captcha) {
+        Map<String, String> errors = new HashMap<>();
         if (userRepository.getUserByEmail(request.getEmail()).isPresent()){
             errors.put("email", "Этот e-mail уже зарегистрирован");
         }
@@ -72,6 +72,7 @@ public class RegistrationUserService {
         if (request.getName().matches("\\W")){
             errors.put("name", "Имя указано неверно");
         }
+        return errors;
     }
 
 }

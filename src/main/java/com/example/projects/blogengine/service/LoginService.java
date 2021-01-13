@@ -18,8 +18,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.security.Principal;
-
 @Service
 @AllArgsConstructor
 public class LoginService {
@@ -45,7 +43,8 @@ public class LoginService {
         User user = details.getUser();
         UserLoginResponse userLoginResponse = modelMapper.map(user, UserLoginResponse.class);
         userLoginResponse.setModeration(user.getIsModerator() == 1);
-        userLoginResponse.setModerationCount(user.getIsModerator() == 1? postRepository.getAllModeratedPostCount(ModerationType.NEW) : 0);
+        userLoginResponse.setModerationCount(
+                user.getIsModerator() == 1 ? postRepository.countByIsActiveAndModerationStatus((byte) 1, ModerationType.NEW) : 0);
         userLoginResponse.setSettings(user.getIsModerator() == 1);
         response.setUser(userLoginResponse);
         return response;
@@ -62,18 +61,19 @@ public class LoginService {
         return response;
     }
 
-    public LoginResponse checkUserStatus(Principal principal) {
+    public LoginResponse checkUserStatus(UserDetailsImpl userDetails) {
         LoginResponse response = new LoginResponse();
-        if (principal == null){
+        if (userDetails == null){
             response.setResult(false);
             return response;
         }
         response.setResult(true);
-        User user = userRepository.getUserByEmail(principal.getName())
-                .orElseThrow(() -> new NotFoundException(principal.getName() + " not found!", HttpStatus.BAD_REQUEST));
+        User user = userRepository.findById(userDetails.getUser().getId())
+                .orElseThrow(() -> new NotFoundException(userDetails.getUser().getName() + " not found!", HttpStatus.BAD_REQUEST));
         UserLoginResponse userLoginResponse = modelMapper.map(user, UserLoginResponse.class);
         userLoginResponse.setModeration(user.getIsModerator() == 1);
-        userLoginResponse.setModerationCount(user.getIsModerator() == 1? postRepository.getAllModeratedPostCount(ModerationType.NEW) : 0);
+        userLoginResponse.setModerationCount(
+                user.getIsModerator() == 1? postRepository.countByIsActiveAndModerationStatus((byte) 1, ModerationType.NEW) : 0);
         userLoginResponse.setSettings(user.getIsModerator() == 1);
         response.setUser(userLoginResponse);
         return response;

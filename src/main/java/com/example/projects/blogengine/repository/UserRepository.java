@@ -8,8 +8,6 @@ import java.util.Optional;
 
 
 public interface UserRepository extends JpaRepository<User, Integer> {
-    @Query("select count(u) from User u join Post p on u.id = p.moderator where p.moderationStatus = 'NEW' and u = ?1")
-    Optional<Integer> getModeratedPostsCount(User user);
 
     Optional<User> getByCode(String code);
 

@@ -1,1 +1,0 @@
-INSERT INTO users (code,email,is_moderator,name,password,photo,reg_time) VALUES (NULL,'user1@mail.ru',1,'user 1','$2y$12$M82SJkBXcfZii1No4AT9hufCB6mYlOjIJAVVgK9G5cOMBs4EIqWEi',NULL,'2018-11-13 14:52:00');

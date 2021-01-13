@@ -7,26 +7,22 @@ import com.example.projects.blogengine.api.request.RegistrationRequest;
 import com.example.projects.blogengine.api.response.CaptchaResponse;
 import com.example.projects.blogengine.api.response.GenericResponse;
 import com.example.projects.blogengine.api.response.LoginResponse;
+import com.example.projects.blogengine.security.UserDetailsImpl;
 import com.example.projects.blogengine.service.CaptchaService;
 import com.example.projects.blogengine.service.LoginService;
 import com.example.projects.blogengine.service.RegistrationUserService;
 import com.example.projects.blogengine.service.UpdateUserService;
 import lombok.AllArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.security.Principal;
-
 @RestController
 @AllArgsConstructor
 public class ApiAuthController {
-
-    private final Logger logger = LoggerFactory.getLogger(ApiPostController.class);
 
     private final UpdateUserService updateUserService;
     private final RegistrationUserService registrationUserService;
@@ -40,8 +36,8 @@ public class ApiAuthController {
     }
 
     @GetMapping("/api/auth/check")
-    public LoginResponse statusChek(Principal principal){
-        return loginService.checkUserStatus(principal);
+    public LoginResponse statusChek(@AuthenticationPrincipal UserDetailsImpl userDetails){
+        return loginService.checkUserStatus(userDetails);
     }
 
     @PostMapping("/api/auth/register")

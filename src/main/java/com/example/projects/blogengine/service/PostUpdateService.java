@@ -38,14 +38,15 @@ public class PostUpdateService {
 
     public GenericResponse createPost(CreatePostRequest request, UserDetailsImpl user) {
         GenericResponse response = new GenericResponse();
-        Map<String, String> errors = new HashMap<>();
-        validateCreatePostRequest(request, errors);
+        Map<String, String> errors = validateCreatePostRequest(request);
         if (errors.size() > 0){
             response.setErrors(errors);
         } else {
             Post post = new Post();
-            setPostModerationTypeOnCreate(post, user);
-            setPostTime(post, request);
+            ModerationType moderationType = getPostModerationTypeOnCreate(user);
+            post.setModerationStatus(moderationType);
+            ZonedDateTime postTime = getPostTime(request);
+            post.setTime(postTime);
             post.setIsActive((byte) request.getActive());
             post.setText(request.getText());
             User actualUser = userRepository.findById(user.getUser().getId())
@@ -53,7 +54,8 @@ public class PostUpdateService {
             post.setUser(actualUser);
             post.setViewCount(0);
             post.setTitle(request.getTitle());
-            setPostTagsOnCreate(request, post);
+            List<Tag> requestedTags = getRequestedTags(request);
+            requestedTags.forEach(post::addTag);
             postRepository.save(post);
             response.setResult(true);
         }
@@ -64,17 +66,20 @@ public class PostUpdateService {
         Post post = postRepository.getPostByIdPreloadTags(id)
                 .orElseThrow(() -> new NotFoundException("post with id " + id + " not found!", HttpStatus.BAD_REQUEST));
         GenericResponse response = new GenericResponse();
-        Map<String, String> errors = new HashMap<>();
-        validateCreatePostRequest(request, errors);
+        Map<String, String> errors  = validateCreatePostRequest(request);
         if (errors.size() > 0){
             response.setErrors(errors);
         } else {
-            setPostModerationTimeOnUpdate(user, post);
-            setPostTime(post, request);
+            ModerationType moderationType = getPostModerationTypeOnUpdate(user, post);
+            post.setModerationStatus(moderationType);
+            ZonedDateTime postTime = getPostTime(request);
+            post.setTime(postTime);
             post.setIsActive((byte) request.getActive());
             post.setText(request.getText());
             post.setTitle(request.getTitle());
-            setPostTagsOnUpdate(request, post);
+            List<Tag> requestedTags = getRequestedTags(request);
+            post.getTags().stream().filter(tag -> !requestedTags.contains(tag)).forEach(post::removeTag);
+            requestedTags.stream().filter(tag -> !post.getTags().contains(tag)).forEach(post::addTag);
             postRepository.save(post);
             response.setResult(true);
         }
@@ -97,40 +102,17 @@ public class PostUpdateService {
         return response;
     }
 
-    private void setPostTagsOnCreate(CreatePostRequest request, Post post) {
-        List<Tag> newTags = tagRepository.getTagsByName(request.getTags());
-        List<String> existingTagNames = newTags.stream().map(Tag::getName).collect(Collectors.toList());
-        for (String tagName : request.getTags()) {
-            if (!existingTagNames.contains(tagName)){
-                Tag tag = new Tag();
-                tag.setName(tagName.toUpperCase().trim());
-                tagRepository.save(tag);
-                newTags.add(tag);
-            }
-        }
-        newTags.forEach(post::addTag);
-    }
-
-    private void setPostTime(Post post, CreatePostRequest request) {
+    private ZonedDateTime getPostTime(CreatePostRequest request) {
         ZonedDateTime postTime = ZonedDateTime
                 .of(LocalDateTime.ofEpochSecond(request.getTimestamp(), 0, ZoneOffset.UTC), ZoneId.of("UTC"));
         if (postTime.compareTo(ZonedDateTime.now(ZoneId.of("UTC"))) < 0) {
             postTime = ZonedDateTime.now(ZoneId.of("UTC"));
         }
-        post.setTime(postTime);
+        return postTime;
     }
 
-    private void setPostModerationTypeOnCreate(Post post, UserDetailsImpl user) {
-        GlobalSettings postPreModeration = globalSettingsRepository.getByCode("POST_PREMODERATION")
-                .orElseThrow(() -> new NotFoundException("Global statistics not found!", HttpStatus.BAD_REQUEST));
-        if (postPreModeration.getValue().equals("YES") && !user.getUser().getIsModerator().equals((byte)1)){
-            post.setModerationStatus(ModerationType.NEW);
-        } else {
-            post.setModerationStatus(ModerationType.ACCEPTED);
-        }
-    }
-
-    private void validateCreatePostRequest(CreatePostRequest request, Map<String, String> errors) {
+    private Map<String, String> validateCreatePostRequest(CreatePostRequest request) {
+        Map<String, String> errors = new HashMap<>();
         if (request.getTitle() == null) {
             errors.put("title", "Заголовок не установлен");
         }
@@ -143,12 +125,14 @@ public class PostUpdateService {
         if (request.getText().length() < blogProperties.getPost().getMinTextSize()) {
             errors.put("text", "Текст публикации слишком короткий");
         }
+        return errors;
     }
 
-    private void setPostTagsOnUpdate(CreatePostRequest request, Post post) {
-        List<Tag> newTags = tagRepository.getTagsByName(request.getTags());
+    private List<Tag> getRequestedTags(CreatePostRequest request) {
+        List<String> tagNames = request.getTags().stream().map(String::toUpperCase).collect(Collectors.toList());
+        List<Tag> newTags = tagRepository.getTagsByName(tagNames);
         List<String> existingTagNames = newTags.stream().map(Tag::getName).collect(Collectors.toList());
-        for (String tagName : request.getTags()) {
+        for (String tagName : tagNames) {
             if (!existingTagNames.contains(tagName)){
                 Tag tag = new Tag();
                 tag.setName(tagName.toUpperCase().trim());
@@ -156,15 +140,26 @@ public class PostUpdateService {
                 newTags.add(tag);
             }
         }
-        post.getTags().stream().filter(tag -> !newTags.contains(tag)).forEach(post::removeTag);
-        newTags.stream().filter(tag -> !post.getTags().contains(tag)).forEach(post::addTag);
+        return newTags;
     }
 
-    private void setPostModerationTimeOnUpdate(UserDetailsImpl user, Post post) {
+    private ModerationType getPostModerationTypeOnUpdate(UserDetailsImpl user, Post post) {
         GlobalSettings postPreModeration = globalSettingsRepository.getByCode("POST_PREMODERATION")
                 .orElseThrow(() -> new NotFoundException("Global statistics not found!", HttpStatus.BAD_REQUEST));
         if (postPreModeration.getValue().equals("YES") && post.getUser().getId().equals(user.getUser().getId())){
-            post.setModerationStatus(ModerationType.NEW);
+            return ModerationType.NEW;
+        } else {
+            return post.getModerationStatus();
+        }
+    }
+
+    private ModerationType getPostModerationTypeOnCreate(UserDetailsImpl user) {
+        GlobalSettings postPreModeration = globalSettingsRepository.getByCode("POST_PREMODERATION")
+                .orElseThrow(() -> new NotFoundException("Global statistics not found!", HttpStatus.BAD_REQUEST));
+        if (postPreModeration.getValue().equals("YES") && !user.getUser().getIsModerator().equals((byte)1)){
+            return ModerationType.NEW;
+        } else {
+            return ModerationType.ACCEPTED;
         }
     }
 
