@@ -1,16 +1,14 @@
 package com.example.projects.blogengine.api.request;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
 import java.util.List;
 
-@Getter
-@Setter
+@Data
 public class CreatePostRequest {
-    Long timestamp;
-    int active;
-    String title;
-    List<String> tags;
-    String text;
+    private Long timestamp;
+    private int active;
+    private String title;
+    private List<String> tags;
+    private String text;
 }

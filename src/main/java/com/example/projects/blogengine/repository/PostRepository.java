@@ -33,7 +33,7 @@ public interface PostRepository extends JpaRepository<Post, Integer> {
     List<Post> getBestPost(Pageable pageable);
 
     @Query("select p from Post p" +
-            " where p.isActive = 1 and p.moderationStatus = 'ACCEPTED' and p.time < now() and p.text like %?1% or p.title like %?1%")
+            " where p.isActive = 1 and p.moderationStatus = 'ACCEPTED' and p.time < now() and (p.text like %?1% or p.title like %?1%)")
     List<Post> getPostListBySearchWord(String searchWord, Pageable pageable);
 
     @Query("select count(p) from Post p" +

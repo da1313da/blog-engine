@@ -11,8 +11,6 @@ import com.example.projects.blogengine.security.UserDetailsImpl;
 import com.example.projects.blogengine.utility.PageRequestWithOffset;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
@@ -31,7 +29,7 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class PostCollectionService {
 
-    private final Logger logger = LoggerFactory.getLogger(PostCollectionService.class);
+    public static final List<ModerationType> ALL_MODERATION_TYPES = List.of(ModerationType.NEW, ModerationType.ACCEPTED, ModerationType.DECLINED);
 
     private final PostRepository postRepository;
     private final ModelMapper modelMapper;
@@ -55,7 +53,7 @@ public class PostCollectionService {
                 break;
         }
         response.setCount(postRepository.getPostCount());
-        response.setPosts(convertToPostResponse(posts));
+        response.setPosts(convertToPostAnnounceList(posts));
         return response;
     }
 
@@ -69,9 +67,9 @@ public class PostCollectionService {
             Pageable page = new PageRequestWithOffset(limit, offset, Sort.unsorted());
             response.setCount(postRepository.getPostsCountByDate(startDate, endDate));
             List<Post> postsByDate = postRepository.getPostsByDate(startDate, endDate, page);
-            response.setPosts(convertToPostResponse(postsByDate));
+            response.setPosts(convertToPostAnnounceList(postsByDate));
         }catch (DateTimeParseException e){
-            logger.info(e.toString());
+            throw new InternalException(date + " parse error!", HttpStatus.BAD_REQUEST);
         }
         return response;
     }
@@ -80,7 +78,7 @@ public class PostCollectionService {
         PostListResponse response = new PostListResponse();
         Pageable page = new PageRequestWithOffset(limit, offset, Sort.unsorted());
         response.setCount(postRepository.getPostsCountByTag(tag));
-        response.setPosts(convertToPostResponse(postRepository.getPostsByTag(tag, page)));
+        response.setPosts(convertToPostAnnounceList(postRepository.getPostsByTag(tag, page)));
         return response;
     }
 
@@ -91,11 +89,8 @@ public class PostCollectionService {
         int postCount;
         switch (status){
             case "inactive":
-                postCount = postRepository.getUserPostCount(user.getUser(),
-                        List.of(ModerationType.NEW, ModerationType.ACCEPTED, ModerationType.DECLINED), (byte) 0);
-                posts = postRepository.getUserPosts(user.getUser(),
-                        List.of(ModerationType.NEW, ModerationType.ACCEPTED, ModerationType.DECLINED),
-                        (byte) 0, page);
+                postCount = postRepository.getUserPostCount(user.getUser(), ALL_MODERATION_TYPES, (byte) 0);
+                posts = postRepository.getUserPosts(user.getUser(), ALL_MODERATION_TYPES, (byte) 0, page);
                 break;
             case "pending":
                 postCount = postRepository.getUserPostCount(user.getUser(), List.of(ModerationType.NEW), (byte) 1);
@@ -111,7 +106,7 @@ public class PostCollectionService {
                 break;
             default:
                 postCount = 0;
-                posts = new ArrayList<>();//or exception?
+                posts = new ArrayList<>();
         }
         response.setPosts(posts.stream()
                 .map(ps -> modelMapper.map(ps, PostAnnounceResponse.class)).collect(Collectors.toList()));
@@ -123,7 +118,7 @@ public class PostCollectionService {
         PageRequestWithOffset page = new PageRequestWithOffset(limit, offset, Sort.unsorted());
         PostListResponse response = new PostListResponse();
         response.setCount(postRepository.getPostListCountBySearchWord(query));
-        response.setPosts(convertToPostResponse(postRepository.getPostListBySearchWord(query, page)));
+        response.setPosts(convertToPostAnnounceList(postRepository.getPostListBySearchWord(query, page)));
         return response;
     }
 
@@ -153,7 +148,7 @@ public class PostCollectionService {
         return response;
     }
 
-    private List<PostAnnounceResponse> convertToPostResponse(List<Post> posts){
+    private List<PostAnnounceResponse> convertToPostAnnounceList(List<Post> posts){
         return posts.stream().map(post -> modelMapper.map(post, PostAnnounceResponse.class)).collect(Collectors.toList());
     }
 }

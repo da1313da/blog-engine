@@ -1,15 +1,13 @@
 package com.example.projects.blogengine.api.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
-@Getter
-@Setter
+@Data
 public class ChangePasswordRequest {
-    String code;
-    String password;
-    String captcha;
+    private String code;
+    private String password;
+    private String captcha;
     @JsonProperty("captcha_secret")
-    String captchaSecret;
+    private String captchaSecret;
 }

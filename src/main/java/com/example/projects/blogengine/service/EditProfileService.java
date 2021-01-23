@@ -34,6 +34,7 @@ public class EditProfileService {
     public GenericResponse edit(MultipartFile photo, EditProfileRequest request, UserDetailsImpl userDetails) {
         User actualUser = userRepository.findById(userDetails.getUser().getId())
                 .orElseThrow(() -> new NotFoundException("User " + userDetails.getUser() + " not found!", HttpStatus.BAD_REQUEST));
+
         GenericResponse response = new GenericResponse();
         Map<String, String> errors = validateRequest(photo, request, userDetails);
         if (errors.size() > 0 ){

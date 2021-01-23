@@ -43,20 +43,17 @@ public class RegistrationUserService {
             response.setResult(false);
             response.setErrors(errors);
         } else {
-            populateRegistrationResponse(request);
+            User user = new User();
+            user.setPassword(passwordEncoder.encode(request.getPassword()));
+            user.setName(request.getName());
+            user.setEmail(request.getEmail());
+            user.setIsModerator((byte) 0);
+            userRepository.save(user);
             response.setResult(true);
         }
         return response;
     }
 
-    private void populateRegistrationResponse(RegistrationRequest request) {
-        User user = new User();
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setName(request.getName());
-        user.setEmail(request.getEmail());
-        user.setIsModerator((byte) 0);
-        userRepository.save(user);
-    }
 
     private Map<String, String> validateRegistrationRequest(RegistrationRequest request, CaptchaCode captcha) {
         Map<String, String> errors = new HashMap<>();

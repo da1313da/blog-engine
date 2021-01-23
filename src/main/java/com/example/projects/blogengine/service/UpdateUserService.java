@@ -11,8 +11,6 @@ import com.example.projects.blogengine.repository.CaptchaRepository;
 import com.example.projects.blogengine.repository.UserRepository;
 import com.example.projects.blogengine.utility.TokenGenerator;
 import lombok.AllArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -24,8 +22,6 @@ import java.util.Optional;
 @Service
 @AllArgsConstructor
 public class UpdateUserService {
-
-    private final Logger logger = LoggerFactory.getLogger(UpdateUserService.class);
 
     private final PasswordEncoder passwordEncoder;
     private final CaptchaRepository captchaRepository;

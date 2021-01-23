@@ -44,43 +44,33 @@ class TagRepositoryTest {
     @Transactional
     @Test
     void shouldReturnTagsWithPostCount() {
-        List<Object[]> expected = entityManager.createNativeQuery("select t.id as tagId, t.name as tagName," +
+        List<Object[]> expected = entityManager.createNativeQuery("select t.name as tagName," +
                 " (select count(tp.post_id) from tag2post tp where tp.tag_id = t.id) as postCount from tags t").getResultList();
         entityManager.clear();
         List<TagWithPostCount> actual = tagRepository.getTagsWithPostCount();
         Assertions.assertThat(actual)
-                .extracting(TagWithPostCount::getTag)
-                .extracting(Tag::getId)
-                .containsExactlyElementsOf(expected.stream().map(a -> (Integer) a[0]).collect(Collectors.toList()));
-        Assertions.assertThat(actual)
-                .extracting(TagWithPostCount::getTag)
-                .extracting(Tag::getName)
-                .containsExactlyElementsOf(expected.stream().map(a -> (String) a[1]).collect(Collectors.toList()));
+                .extracting(TagWithPostCount::getTagName)
+                .containsExactlyElementsOf(expected.stream().map(a -> (String) a[0]).collect(Collectors.toList()));
         Assertions.assertThat(actual)
                 .extracting(TagWithPostCount::getPostCount)
-                .containsExactlyElementsOf(expected.stream().map(a -> ((BigInteger) a[2]).intValue()).collect(Collectors.toList()));
+                .containsExactlyElementsOf(expected.stream().map(a -> ((BigInteger) a[1]).intValue()).collect(Collectors.toList()));
     }
 
     @SuppressWarnings({"unchecked"})
     @Transactional
     @Test
     void shouldReturnTagsWithPostCountByQuery() {
-        List<Object[]> expected = entityManager.createNativeQuery("select t.id as tagId, t.name as tagName," +
+        List<Object[]> expected = entityManager.createNativeQuery("select t.name as tagName," +
                 " (select count(tp.post_id) from tag2post tp where tp.tag_id = t.id) as postCount from tags t where t.name like :word")
                 .setParameter("word", TAG_SEARCH_NAME + "%")
                 .getResultList();
         entityManager.clear();
         List<TagWithPostCount> actual = tagRepository.getTagsWithPostCountBySearchQuery(TAG_SEARCH_NAME);
         Assertions.assertThat(actual)
-                .extracting(TagWithPostCount::getTag)
-                .extracting(Tag::getId)
-                .containsExactlyElementsOf(expected.stream().map(a -> (Integer) a[0]).collect(Collectors.toList()));
-        Assertions.assertThat(actual)
-                .extracting(TagWithPostCount::getTag)
-                .extracting(Tag::getName)
-                .containsExactlyElementsOf(expected.stream().map(a -> (String) a[1]).collect(Collectors.toList()));
+                .extracting(TagWithPostCount::getTagName)
+                .containsExactlyElementsOf(expected.stream().map(a -> (String) a[0]).collect(Collectors.toList()));
         Assertions.assertThat(actual)
                 .extracting(TagWithPostCount::getPostCount)
-                .containsExactlyElementsOf(expected.stream().map(a -> ((BigInteger) a[2]).intValue()).collect(Collectors.toList()));
+                .containsExactlyElementsOf(expected.stream().map(a -> ((BigInteger) a[1]).intValue()).collect(Collectors.toList()));
     }
 }

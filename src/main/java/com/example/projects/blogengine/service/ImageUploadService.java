@@ -2,11 +2,8 @@ package com.example.projects.blogengine.service;
 
 import com.example.projects.blogengine.config.BlogProperties;
 import com.example.projects.blogengine.exception.ImageIOException;
-import com.example.projects.blogengine.repository.UserRepository;
 import com.example.projects.blogengine.utility.TokenGenerator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -18,15 +15,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 @Service
+@AllArgsConstructor
 public class ImageUploadService {
 
-    private final Logger logger = LoggerFactory.getLogger(ImageUploadService.class);
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private BlogProperties blogProperties;
-    @Autowired
-    private TokenGenerator tokenGenerator;
+    private final BlogProperties blogProperties;
+    private final TokenGenerator tokenGenerator;
 
     public String upload(MultipartFile file) {
         long imageSize = blogProperties.getUpload().getMaxImageSize().toBytes();

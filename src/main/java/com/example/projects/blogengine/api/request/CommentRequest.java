@@ -1,15 +1,13 @@
 package com.example.projects.blogengine.api.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
-@Getter
-@Setter
+@Data
 public class CommentRequest {
     @JsonProperty("parent_id")
-    String parenId;
+    private String parenId;
     @JsonProperty("post_id")
-    int postId;
-    String text;
+    private int postId;
+    private String text;
 }

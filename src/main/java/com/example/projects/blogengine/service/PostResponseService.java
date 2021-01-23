@@ -32,6 +32,10 @@ public class PostResponseService {
     public PostResponse getPostById(int id, UserDetailsImpl user) {
         Post post = postRepository.getPostById(id)
                 .orElseThrow(() -> new NotFoundException("Post with id " + id + " not found!", HttpStatus.NOT_FOUND));
+        if (user == null){
+            post.setViewCount(post.getViewCount() + 1);
+            postRepository.save(post);
+        }
         if (user != null && user.getUser().getIsModerator() != 1 && !post.getUser().getId().equals(user.getUser().getId())){
             post.setViewCount(post.getViewCount() + 1);
             postRepository.save(post);

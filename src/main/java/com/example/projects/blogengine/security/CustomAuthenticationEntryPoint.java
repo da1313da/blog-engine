@@ -1,4 +1,4 @@
-package com.example.projects.blogengine.exception;
+package com.example.projects.blogengine.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.security.core.AuthenticationException;

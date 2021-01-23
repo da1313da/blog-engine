@@ -1,13 +1,11 @@
 package com.example.projects.blogengine.api.response;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
 import java.util.List;
 
-@Getter
-@Setter
+@Data
 public class PostListResponse {
-    int count;
-    List<PostAnnounceResponse> posts;
+    private int count;
+    private List<PostAnnounceResponse> posts;
 }

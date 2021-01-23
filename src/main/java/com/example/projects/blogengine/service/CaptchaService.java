@@ -26,25 +26,37 @@ public class CaptchaService {
     private final CaptchaRepository captchaRepository;
 
     public CaptchaResponse captcha() {
+        String displayCode = tokenGenerator.getToken(blogProperties.getCaptcha().getDisplayCodeLength());
+        String databaseSecretCode = tokenGenerator.getToken(blogProperties.getCaptcha().getSecretCodeLength());
+
+        BufferedImage imageWithCode = createImageByCode(displayCode);
+        BufferedImage resizedImageWithCode = resizeImage(imageWithCode,
+                blogProperties.getCaptcha().getCaptchaImageWidth(), blogProperties.getCaptcha().getCaptchaImageHeight());
+        String base64imageWithCode = convertToBase64(resizedImageWithCode);
+
+        CaptchaCode captchaCode = new CaptchaCode();
+        captchaCode.setCode(displayCode);
+        captchaCode.setSecretCode(databaseSecretCode);
+        captchaRepository.save(captchaCode);
+
+        return getResponse(base64imageWithCode, databaseSecretCode);
+    }
+
+    private BufferedImage createImageByCode(String code){
         GCage cage = new GCage();
-        CaptchaResponse response = new CaptchaResponse();
-        String secret = tokenGenerator.getToken(blogProperties.getCaptcha().getSecretCodeLength());
-        String code = tokenGenerator.getToken(blogProperties.getCaptcha().getDisplayCodeLength());
-        BufferedImage baseImage = cage.drawImage(code);
-        BufferedImage sizedImage = new BufferedImage(
-                blogProperties.getCaptcha().getCaptchaImageWidth(),
-                blogProperties.getCaptcha().getCaptchaImageHeight(),
-                BufferedImage.TYPE_INT_RGB);
-        sizedImage.createGraphics().drawImage(
-                baseImage,
-                0,
-                0,
-                blogProperties.getCaptcha().getCaptchaImageWidth(),
-                blogProperties.getCaptcha().getCaptchaImageHeight(),
-                null);
+        return cage.drawImage(code);
+    }
+
+    private BufferedImage resizeImage(BufferedImage image, int width, int height){
+        BufferedImage sizedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+        sizedImage.createGraphics().drawImage(image, 0,0, width, height, null);
+        return sizedImage;
+    }
+
+    private String convertToBase64(BufferedImage image){
         ByteArrayOutputStream buffer = new ByteArrayOutputStream();
         try {
-            ImageIO.write(sizedImage, "png", buffer);
+            ImageIO.write(image, "png", buffer);
         } catch (IOException e) {
             InternalException internalException = new InternalException("Captcha save io error!", HttpStatus.BAD_REQUEST);
             internalException.setException(e);
@@ -52,13 +64,13 @@ public class CaptchaService {
         }
         byte[] byteArray = buffer.toByteArray();
         String encodedImage = Base64.getEncoder().encodeToString(byteArray);
-        String image = "data:image/png;base64, " + encodedImage;
-        CaptchaCode captchaCode = new CaptchaCode();
-        captchaCode.setCode(code);
-        captchaCode.setSecretCode(secret);
-        captchaRepository.save(captchaCode);
-        response.setImage(image);
-        response.setSecret(secret);
+        return  "data:image/png;base64, " + encodedImage;
+    }
+
+    private CaptchaResponse getResponse(String base64Image, String databaseSecretCode){
+        CaptchaResponse response = new CaptchaResponse();
+        response.setImage(base64Image);
+        response.setSecret(databaseSecretCode);
         return response;
     }
 }

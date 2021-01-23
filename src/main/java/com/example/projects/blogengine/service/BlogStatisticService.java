@@ -35,18 +35,20 @@ public class BlogStatisticService {
         int allLikesCount = postRepository.getUserLikesCount(userId);
         int allDislikesCount = postRepository.getUserDislikesCount(userId);
         int allViewCount = postRepository.getUserViewCount(userId).orElse(0);
+
         statisticResponse.setFirstPublication(firstPublicationTimeStamp);
         statisticResponse.setViewsCount(allViewCount);
         statisticResponse.setDislikesCount(allDislikesCount);
         statisticResponse.setLikesCount(allLikesCount);
         statisticResponse.setPostsCount(postsCount);
-        return statisticResponse;
 
+        return statisticResponse;
     }
 
     public StatisticResponse getBlog(UserDetailsImpl userDetails){
         GlobalSettings settings = globalSettingsRepository.getByCode("STATISTICS_IS_PUBLIC")
                 .orElseThrow(() -> new NotFoundException("Global settings not found!", HttpStatus.BAD_REQUEST));
+
         if (settings.getValue().equals("NO") && userDetails.getUser().getIsModerator() != 1) {
             throw new AccessDeniedException("Global statistics available only for users with moderator authorities", HttpStatus.UNAUTHORIZED);
         } else {
@@ -58,11 +60,13 @@ public class BlogStatisticService {
             int allLikesCount = postRepository.getAllLikesCount();
             int allDislikesCount = postRepository.getAllDislikesCount();
             int allViewCount = postRepository.getAllViewCount().orElse(0);
+
             statisticResponse.setFirstPublication(firstPublicationTimeStamp);
             statisticResponse.setViewsCount(allViewCount);
             statisticResponse.setDislikesCount(allDislikesCount);
             statisticResponse.setLikesCount(allLikesCount);
             statisticResponse.setPostsCount(postsCount);
+
             return statisticResponse;
         }
     }

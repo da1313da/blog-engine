@@ -1,18 +1,14 @@
 package com.example.projects.blogengine.api.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.*;
+import lombok.Data;
 
-@Getter
-@Setter
-@AllArgsConstructor
-@NoArgsConstructor
-@ToString
+@Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class StatisticResponse {
-    long postsCount;
-    long likesCount;
-    long dislikesCount;
-    long viewsCount;
-    Long firstPublication;
+    private long postsCount;
+    private long likesCount;
+    private long dislikesCount;
+    private long viewsCount;
+    private Long firstPublication;
 }

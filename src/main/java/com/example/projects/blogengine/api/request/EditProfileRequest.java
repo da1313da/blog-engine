@@ -1,15 +1,13 @@
 package com.example.projects.blogengine.api.request;
 
 import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
-@Getter
-@Setter
+@Data
 @AllArgsConstructor
 public class EditProfileRequest {
-    String name;
-    String email;
-    String password;
-    Integer removePhoto;
+    private String name;
+    private String email;
+    private String password;
+    private Integer removePhoto;
 }

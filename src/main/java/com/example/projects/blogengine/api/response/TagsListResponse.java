@@ -1,12 +1,10 @@
 package com.example.projects.blogengine.api.response;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
 import java.util.List;
 
-@Getter
-@Setter
+@Data
 public class TagsListResponse {
-    List<TagWeightResponse> tags;
+    private List<TagWeightResponse> tags;
 }

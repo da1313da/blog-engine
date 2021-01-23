@@ -1,14 +1,8 @@
 package com.example.projects.blogengine.api.response;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.Data;
 
-@Getter
-@Setter
-@AllArgsConstructor
-@NoArgsConstructor
+@Data
 public class PostAnnounceResponse {
     private long id;
     private long timestamp;

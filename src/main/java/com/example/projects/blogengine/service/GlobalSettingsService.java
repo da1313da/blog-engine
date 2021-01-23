@@ -2,7 +2,7 @@ package com.example.projects.blogengine.service;
 
 import com.example.projects.blogengine.model.GlobalSettings;
 import com.example.projects.blogengine.repository.GlobalSettingsRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -11,10 +11,10 @@ import java.util.Map;
 import java.util.Optional;
 
 @Service
+@AllArgsConstructor
 public class GlobalSettingsService {
 
-    @Autowired
-    private GlobalSettingsRepository repository;
+    private final GlobalSettingsRepository repository;
 
     public Map<String, Boolean> getSettings(){
         List<GlobalSettings> settings = (List<GlobalSettings>) repository.findAll();

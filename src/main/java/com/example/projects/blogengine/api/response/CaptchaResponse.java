@@ -1,11 +1,9 @@
 package com.example.projects.blogengine.api.response;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
-@Getter
-@Setter
+@Data
 public class CaptchaResponse {
-    String secret;
-    String image;
+    private String secret;
+    private String image;
 }

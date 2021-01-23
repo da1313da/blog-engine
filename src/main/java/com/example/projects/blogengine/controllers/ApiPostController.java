@@ -37,7 +37,6 @@ public class ApiPostController {
     public PostListResponse getPostResponseByDate(@RequestParam(name = "offset", required = false, defaultValue = "0") int offset,
                                             @RequestParam(name = "limit", required = false, defaultValue = "1") int limit,
                                             @RequestParam(name = "date", required = false, defaultValue = "#{T(java.time.ZonedDateTime).now(T(java.time.ZoneId).of(\"UTC\")).format(T(java.time.format.DateTimeFormatter).ofPattern(\"yyyy-MM-dd\"))}") String date){
-        System.out.println(date);
         return postCollectionService.getPostListByDate(limit, offset, date);
     }
 

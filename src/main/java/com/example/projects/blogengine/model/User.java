@@ -42,22 +42,22 @@ public class User {
 
     @JsonIgnore
     @ToString.Exclude
-    @OneToMany(mappedBy = "user", cascade = CascadeType.PERSIST)
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     private Set<Post> posts = new HashSet<>();
 
     @JsonIgnore
     @ToString.Exclude
-    @OneToMany(mappedBy = "moderator", cascade = CascadeType.PERSIST)
+    @OneToMany(mappedBy = "moderator", fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     private Set<Post> postsToModerate = new HashSet<>();
 
     @JsonIgnore
     @ToString.Exclude
-    @OneToMany(mappedBy = "user", cascade = CascadeType.PERSIST)
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     private Set<PostComment> comments = new HashSet<>();
 
     @JsonIgnore
     @ToString.Exclude
-    @OneToMany(mappedBy = "user", cascade = CascadeType.PERSIST)
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     private Set<PostVote> votes = new HashSet<>();
 
     @PrePersist

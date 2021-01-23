@@ -1,12 +1,10 @@
 package com.example.projects.blogengine.api.response;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
-@Getter
-@Setter
+@Data
 public class UserCommentResponse {
-    int id;
-    String name;
-    String photo;
+    private int id;
+    private String name;
+    private String photo;
 }

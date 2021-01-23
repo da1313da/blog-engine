@@ -52,7 +52,7 @@ public class Post {
     private Integer viewCount;
 
     @JsonIgnore
-    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(name = "tag2post",
             joinColumns = @JoinColumn(name = "post_id"),
             inverseJoinColumns = @JoinColumn(name = "tag_id"))
@@ -60,12 +60,12 @@ public class Post {
 
     @Fetch(FetchMode.SUBSELECT)
     @JsonIgnore
-    @OneToMany(mappedBy = "post", cascade = CascadeType.PERSIST)
+    @OneToMany(mappedBy = "post", fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     private List<PostComment> comments = new ArrayList<>();
 
     @Fetch(FetchMode.SUBSELECT)
     @JsonIgnore
-    @OneToMany(mappedBy = "post", cascade = CascadeType.PERSIST)
+    @OneToMany(mappedBy = "post", fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     private List<PostVote> votes = new ArrayList<>();
 
     public void addTag(Tag tag){

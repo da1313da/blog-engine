@@ -1,22 +1,20 @@
 package com.example.projects.blogengine.api.response;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
 import java.util.List;
 
-@Getter
-@Setter
+@Data
 public class PostResponse {
-    int id;
-    long timestamp;
-    boolean active;
-    UserPostResponse user;
-    String title;
-    String text;
-    int likeCount;
-    int dislikeCount;
-    int viewCount;
-    List<CommentListResponse> comments;
-    List<String> tags;
+    private int id;
+    private long timestamp;
+    private boolean active;
+    private UserPostResponse user;
+    private String title;
+    private String text;
+    private int likeCount;
+    private int dislikeCount;
+    private int viewCount;
+    private List<CommentListResponse> comments;
+    private List<String> tags;
 }

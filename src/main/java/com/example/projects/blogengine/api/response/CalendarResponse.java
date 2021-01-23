@@ -1,14 +1,12 @@
 package com.example.projects.blogengine.api.response;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
 import java.util.List;
 import java.util.Map;
 
-@Getter
-@Setter
+@Data
 public class CalendarResponse {
-    List<Integer> years;
-    Map<String, Integer> posts;
+    private List<Integer> years;
+    private Map<String, Integer> posts;
 }
